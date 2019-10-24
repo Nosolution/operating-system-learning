@@ -1,0 +1,40 @@
+AX is the primary accumulator; it is used in input/output and most arithmetic instructions. For example, in multiplication operation, one operand is stored in EAX or AX or AL register according to the size of the operand.
+BX is known as the base register, as it could be used in indexed addressing.
+CX is known as the count register, as the ECX, CX registers store the loop count in iterative operations.
+DX is known as the data register. It is also used in input/output operations. It is also used with AX register along with DX for multiply and divide operations involving large values.
+
+
+Instruction Pointer (IP) − The 16-bit IP register stores the offset address of the next instruction to be executed. IP in association with the CS register (as CS:IP) gives the complete address of the current instruction in the code segment.
+Stack Pointer (SP) − The 16-bit SP register provides the offset value within the program stack. SP in association with the SS register (SS:SP) refers to be current position of data or address within the program stack.
+Base Pointer (BP) − The 16-bit BP register mainly helps in referencing the parameter variables passed to a subroutine. The address in SS register is combined with the offset in BP to get the location of the parameter. BP can also be combined with DI and SI as base register for special addressing.
+ecx: couter register
+esi: originally known as the source register
+rsp: stack pointer
+
+1BH: 对应ASCII 为ESC键
+0Ah: 对应换行
+0h: 空结束符
+
+mov     eax, 10         ; move 10 into eax
+mov     esi, 10         ; move 10 into esi
+idiv    esi             ; divide eax by esi (eax will equal 1 and edx will equal 0)
+idiv    esi             ; divide eax by esi again (eax will equal 0 and edx will equal 1)
+idiv eax/=esi eax = quation edx = remainder
+
+    mov     eax, 90     ; move our first number into eax
+    mov     ebx, 9      ; move our second number into ebx
+    mul     ebx         ; multiply eax by ebx
+    result is in eax
+
+
+read():
+    mov     edx, 255        ; number of bytes to read
+    mov     ecx, sinput     ; reserved space to store our input (known as a buffer)
+    mov     ebx, 0          ; write to the STDIN file
+    mov     eax, 3          ; invoke SYS_READ (kernel opcode 3)
+    int     80h
+
+ax(accumulator): 可用于存放函数返回值
+bp(base pointer): 用于存放执行中的函数对应的栈帧的栈底地址
+sp(stack poinger): 用于存放执行中的函数对应的栈帧的栈顶地址
+ip(instruction pointer): 指向当前执行指令的下一条指令
