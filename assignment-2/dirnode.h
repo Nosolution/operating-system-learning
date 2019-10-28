@@ -1,3 +1,7 @@
+#include <cstdlib>
+#include <cstring>
+#include <algorithm>
+
 class DirNode
 {
     public:
@@ -32,6 +36,8 @@ class DirNode
         }
 
         DirNode& add_child(DirNode* node);
+
+        DirNode* find(const char* name);
 
         static DirNode parent_node(void)
         {

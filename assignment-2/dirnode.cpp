@@ -14,3 +14,41 @@ DirNode& DirNode::add_child(DirNode* node)
     chd_ct++;
     return *this;
 };
+
+DirNode* DirNode::find(const char* path)
+{
+    if(!this->is_dir)
+        return nullptr;
+    else
+    {
+        const char* ed = std::find(path, path+strlen(path), '/');
+        if(strlen(filename)!=ed-path)
+            return nullptr;
+        else
+        {
+            for(int i= 0; i<ed-path;i++)
+            {
+                if(filename[i]!=path[i])//if filename is not the top dir
+                    return nullptr;
+            }
+            if( ed-path >= strlen(path)-1 )// dir/ or dir
+                return this;
+            else    //search in children
+            {
+                DirNode* res;
+                for(int i = 0;i < chd_ct; i++)
+                {
+                    DirNode* child = children + i;
+                    if(std::strcmp(child->filename, ".")==0 || std::strcmp(child->filename, "..")==0)
+                        continue;//skip the parent dir and current dir
+
+                    res = child->find(ed + 1);
+                    if(res!=nullptr)
+                        return res;
+                }
+                return nullptr;
+            }
+            
+        }
+    }
+}

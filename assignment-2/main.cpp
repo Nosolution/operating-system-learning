@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <string>
 #include <cstring>
+#include <algorithm>
 #include "dirnode.h"
 #define _BLOCK_SIZE 512
 #define _FAT_ITEM_LEN 12
@@ -12,6 +13,13 @@
 #define _ROOT_ENTRY_ST 19
 #define _DATA_ST 33
 #define fat_bias(x) x - 2
+#define _PARSE_SUCCESS 0
+#define _WRONG_COMMAND 1
+#define _WRONG_OPTION 2
+#define _TOO_MUCH_PARAM 3
+#define _NO_PARAM 4
+#define _WHITE_COLOR 10
+#define _RED_COLOR 12
 typedef unsigned short fatnum;
 typedef unsigned char byte;
 typedef unsigned int number;
@@ -67,30 +75,71 @@ number bs2n(char *bytes, int n);
 fatnum *get_fatlist(char *bytes);
 DirNode &read_meta_data(DirNode &node, const fatnum *fatlist, ifstream &fs);
 byte *read_data(const number fstclus, const number size, const fatnum *fatlist, ifstream &fs);
-
+int parse_cmd(string &line, string &cmd, string &opt, string &param);
+const char *next_word(const char *st, int &len, string &word);
+void bfs_print_node(DirNode *node, void (*print)(DirNode *node));
+void plain_print(DirNode *node);
+void detailed_print(DirNode *node);
+void asm_prints(const char *s, int color);
+void asm_printi(const int i);
+void hint();
 int main()
 {
     ifstream img;
     img.open("img/data.img", ios::binary);
     char header_bytes[_BLOCK_SIZE];
-    img.read(header_bytes, _BLOCK_SIZE);
     img.seekg(_BLOCK_SIZE * _BPB_ST, ios::beg);
+    img.read(header_bytes, _BLOCK_SIZE);
     Fat12Header header = parse_header(header_bytes);
 
     char fat_bytes[_BLOCK_SIZE * 9];
-    img.read(fat_bytes, _BLOCK_SIZE * 9);
     img.seekg(_BLOCK_SIZE * _FAT_ST, ios::beg);
+    img.read(fat_bytes, _BLOCK_SIZE * 9);
     fatnum *fatlist = get_fatlist(fat_bytes);
 
     DirNode root{"/", true};
-    byte* re_bytes = new byte[header.BPB_DirEntCnt * _DIR_ITEM_SIZE];
-
-
+    img.seekg(_BLOCK_SIZE * _ROOT_ENTRY_ST, ios::beg);
+    for (int i = 0; i < header.BPB_DirEntCnt; i++)
+    {
+        read_meta_data(root, fatlist, img);
+        img.seekg(_DIR_ITEM_SIZE, ios::cur);
+    }
     cout << "Hello World!" << endl;
+    string line, cmd, opt, param;
+    int code;
+    while (true)
+    {
+        getline(cin, line);
+        code = parse_cmd(line, cmd, opt, param);
+        if (code == _PARSE_SUCCESS)
+        {
+            if (cmd.compare("quit") == 0)
+                break;
+            else if (cmd.compare("ls") == 0)
+            {
+                char main_dir[60] = "main";
+                strcat(main_dir, param.c_str);
+                root.filename = "main"; //make method perform consistantly
+                DirNode *cur = root.find(main_dir);
+                root.filename = "/";
+
+                if (opt.length() > 0)
+                {
+                    bfs_print_node()
+                }
+                else
+                {
+                    what
+                }
+            }
+        }
+        else
+        {
+            hint();
+        }
+    }
     return 0;
 }
-
-
 
 DirNode &read_meta_data(DirNode &node, const fatnum *fatlist, ifstream &fs)
 {
@@ -145,6 +194,107 @@ fatnum *get_fatlist(char *bytes)
     }
 
     return res;
+}
+
+int parse_cmd(string &line, string &cmd, string &opt, string &param)
+{
+    string word;
+    cmd = "";
+    opt = "";
+    param = "";
+    int l = line.length();
+    const char *p = line.c_str();
+    p = next_word(p, l, word);
+    if (word.compare("ls") == 0)
+    {
+        cmd = "ls";
+        while (l != 0)
+        {
+            p = next_word(p, l, word);
+            if (word[0] == '-')
+            {
+                if (word.length() == 1)
+                    return _WRONG_OPTION;
+                else
+                { //judge if multi options are all the same;
+                    for (int i = 1; i < word.length(); i++)
+                    {
+                        if (word[i] != 'l')
+                            return _WRONG_OPTION;
+                    }
+                    opt = "-l";
+                }
+            }
+            else
+            {
+                if (param.length != 0)
+                    return _TOO_MUCH_PARAM; //param should occur only  once;
+                else
+                {
+                    param = word;
+                }
+            }
+        }
+        return _PARSE_SUCCESS;
+    }
+    else if (word.compare("cat") == 0)
+    {
+        cmd = "cat";
+        if (l == 0)
+            return _NO_PARAM;
+
+        p = next_word(p, l, word);
+        if (l != 0)
+            return _TOO_MUCH_PARAM;
+        else
+        {
+            param = word;
+            return _PARSE_SUCCESS;
+        }
+    }
+    else if (word.compare("quit") == 0)
+    {
+        cmd = "quit";
+        if (l != 0)
+            return _TOO_MUCH_PARAM;
+        else
+            return _PARSE_SUCCESS;
+    }
+    return _WRONG_COMMAND;
+}
+
+const char *next_word(const char *st, int &len, string &word)
+{
+    if (len == 0)
+        return st;
+    else
+    {
+        const char *ed = find(st, st + len, ' ');
+        word = string(st, ed);
+        while (ed != st + len && *ed == ' ') // skip multiple space
+            ed++;
+        len -= (ed - st);
+        return ed + 1;
+    }
+}
+
+void plain_print(DirNode *node)
+{
+    asm_prints(node->filename, _WHITE_COLOR);
+    asm_prints(":\n", _WHITE_COLOR);
+    DirNode *child;
+    for (int i = 0; i < node->chd_ct; i++)
+    {
+        child = (node->children) + i;
+        asm_prints(child->filename, child->is_dir ? _RED_COLOR : _WHITE_COLOR);
+        if(i<node->chd_ct - 1)
+            asm_prints("  ", _WHITE_COLOR);
+    }
+    asm_prints("\n", _WHITE_COLOR);
+}
+void detailed_print(DirNode *node)
+{
+    
 }
 
 Fat12Header &parse_header(byte *header)
@@ -259,4 +409,9 @@ number bs2n(byte *bytes, int n)
         res += bit;
     }
     return res;
+}
+
+void hint()
+{
+    cout << "Wrong command. Please retry." << endl;
 }
