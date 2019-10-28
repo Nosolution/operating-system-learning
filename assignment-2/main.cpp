@@ -102,7 +102,7 @@ int main()
     img.read(fat_bytes, _BLOCK_SIZE * 9);
     fatnum *fatlist = get_fatlist(fat_bytes);
 
-    DirNode root{"/", true};
+    DirNode root{"/", true, 0};
     img.seekg(_BLOCK_SIZE * _ROOT_ENTRY_ST, ios::beg);
     for (int i = 0; i < header.BPB_DirEntCnt; i++)
     {
@@ -126,7 +126,7 @@ int main()
             else if (cmd.compare("ls") == 0)
             {
                 char main_dir[60] = "main";
-                strcat_s(main_dir, param.c_str());
+                strcat(main_dir, param.c_str());
                 root.filename = "main"; //make method perform consistantly
                 DirNode *cur = root.find(main_dir);
                 root.filename = "";
@@ -136,7 +136,7 @@ int main()
 
                 DirNode *node, *tmp;
                 queue<DirNode*> node_q;
-                node_q.push(root);
+                node_q.push(&root);
                 while (!node_q.empty())
                 {
                     node = node_q.front();
