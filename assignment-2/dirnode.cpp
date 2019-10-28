@@ -12,6 +12,11 @@ DirNode& DirNode::add_child(DirNode* node)
         children[chd_ct++] = *node;
     }
     chd_ct++;
+    if(node->parent==nullptr)
+    {
+        node->parent[1];
+    }
+    node->parent = this;
     return *this;
 };
 
@@ -51,4 +56,40 @@ DirNode* DirNode::find(const char* path)
             
         }
     }
-}
+    
+};
+
+int DirNode::count_subdir()
+{
+    if(!this->is_dir)
+        return 0;
+    int r = 0;
+    DirNode* child;
+    for(int i=0;i<chd_ct;i++)
+    {
+        child = children+i;
+        if(strcmp(child->filename, ".")==0 || strcmp(child->filename, "..")==0)
+            continue;
+        if(child->is_dir)
+            r++;
+    }
+    return r;
+};
+int DirNode::count_subfile()
+{
+    if(!this->is_dir)
+        return 0;
+    int r = 0;
+    DirNode* child;
+    for(int i=0;i<chd_ct;i++)
+    {
+        child = children+i;
+        if(strcmp(child->filename, ".")==0 || strcmp(child->filename, "..")==0)
+            continue;
+        if(!child->is_dir)
+            r++;
+    }
+    return r;
+};
+
+

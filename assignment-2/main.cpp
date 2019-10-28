@@ -4,6 +4,8 @@
 #include <string>
 #include <cstring>
 #include <algorithm>
+#include <stack>
+#include <queue>
 #include "dirnode.h"
 #define _BLOCK_SIZE 512
 #define _FAT_ITEM_LEN 12
@@ -24,6 +26,7 @@ typedef unsigned short fatnum;
 typedef unsigned char byte;
 typedef unsigned int number;
 
+using namespace std;
 struct Fat12Header
 {
     byte BS_OEMName[8];     //OEM字符串，必须为8个字符，不足以空格填空
@@ -68,10 +71,9 @@ const byte VOLUME_ID = 0x08;
 const byte DIRECTORY = 0x10;
 const byte ARCHIVE = 0x20;
 
-using namespace std;
 Fat12Header &parse_header(char *);
-DirEntry &parse_entry(char *entry);
-number bs2n(char *bytes, int n);
+DirEntry &parse_entry(byte *entry);
+number bs2n(byte *bytes, int n);
 fatnum *get_fatlist(char *bytes);
 DirNode &read_meta_data(DirNode &node, const fatnum *fatlist, ifstream &fs);
 byte *read_data(const number fstclus, const number size, const fatnum *fatlist, ifstream &fs);
@@ -80,9 +82,12 @@ const char *next_word(const char *st, int &len, string &word);
 void bfs_print_node(DirNode *node, void (*print)(DirNode *node));
 void plain_print(DirNode *node);
 void detailed_print(DirNode *node);
-void asm_prints(const char *s, int color);
-void asm_printi(const int i);
+void print_abs_path(DirNode *node);
+void asm_prints(const char *s, int color);  //print str in color
+void asm_printi(const int i);               //print number
+void asm_printcs(const char* s, int count);//print str in size
 void hint();
+
 int main()
 {
     ifstream img;
@@ -114,23 +119,45 @@ int main()
         if (code == _PARSE_SUCCESS)
         {
             if (cmd.compare("quit") == 0)
+            {
+                cout << "bye" << endl;
                 break;
+            }
             else if (cmd.compare("ls") == 0)
             {
                 char main_dir[60] = "main";
-                strcat(main_dir, param.c_str);
+                strcat_s(main_dir, param.c_str());
                 root.filename = "main"; //make method perform consistantly
                 DirNode *cur = root.find(main_dir);
-                root.filename = "/";
+                root.filename = "";
 
-                if (opt.length() > 0)
+                void (*print_func)(DirNode * node);
+                print_func = opt.length() > 0 ? detailed_print : plain_print;
+
+                DirNode *node, *tmp;
+                queue<DirNode*> node_q;
+                node_q.push(root);
+                while (!node_q.empty())
                 {
-                    bfs_print_node()
+                    node = node_q.front();
+                    print_func(node);
+                    for (int i = 0; i < node->chd_ct; i++)
+                    {
+                        tmp = node->children + i;
+                        if (strcmp(tmp->filename, ".") == 0 || strcmp(tmp->filename, "..") == 0)
+                            continue;
+                        node_q.push(tmp);
+                    }
+                    node_q.pop();
                 }
-                else
-                {
-                    what
-                }
+            }
+            else if (cmd.compare("cat") == 0)
+            {
+                DirNode *node = root.find(param.c_str());
+                DirEntry* entry = ((DirEntry*)node->entry);
+                byte *data = read_data(entry->fstclus, entry->filesize, fatlist, img);
+                byte a = 1;
+                asm_printcs(const_cast<char*>((char*)data), entry->filesize);
             }
         }
         else
@@ -139,7 +166,7 @@ int main()
         }
     }
     return 0;
-}
+};
 
 DirNode &read_meta_data(DirNode &node, const fatnum *fatlist, ifstream &fs)
 {
@@ -155,7 +182,7 @@ DirNode &read_meta_data(DirNode &node, const fatnum *fatlist, ifstream &fs)
         {
             memcpy(entry_bytes, data + count * _DIR_ITEM_SIZE, _DIR_ITEM_SIZE);
             chd_entry = parse_entry(entry_bytes);
-            DirNode child{(char *)chd_entry.dirname, chd_entry.dirattr ^ DIRECTORY == 0};
+            DirNode child{(char *)chd_entry.dirname, (chd_entry.dirattr ^ DIRECTORY) == 0, chd_entry.filesize};
             child.entry = &chd_entry;
 
             read_meta_data(child, fatlist, fs); //dfs
@@ -165,7 +192,7 @@ DirNode &read_meta_data(DirNode &node, const fatnum *fatlist, ifstream &fs)
         }
     }
     return node;
-}
+};
 
 byte *read_data(const number fstclus, const number size, const fatnum *fatlist, ifstream &fs)
 {
@@ -179,7 +206,7 @@ byte *read_data(const number fstclus, const number size, const fatnum *fatlist, 
         memcpy(data + count * _BLOCK_SIZE, blc_buf, _BLOCK_SIZE);
     }
     return data;
-}
+};
 
 fatnum *get_fatlist(char *bytes)
 {
@@ -194,7 +221,7 @@ fatnum *get_fatlist(char *bytes)
     }
 
     return res;
-}
+};
 
 int parse_cmd(string &line, string &cmd, string &opt, string &param)
 {
@@ -227,7 +254,7 @@ int parse_cmd(string &line, string &cmd, string &opt, string &param)
             }
             else
             {
-                if (param.length != 0)
+                if (param.length() != 0)
                     return _TOO_MUCH_PARAM; //param should occur only  once;
                 else
                 {
@@ -261,7 +288,7 @@ int parse_cmd(string &line, string &cmd, string &opt, string &param)
             return _PARSE_SUCCESS;
     }
     return _WRONG_COMMAND;
-}
+};
 
 const char *next_word(const char *st, int &len, string &word)
 {
@@ -276,26 +303,73 @@ const char *next_word(const char *st, int &len, string &word)
         len -= (ed - st);
         return ed + 1;
     }
-}
+};
 
 void plain_print(DirNode *node)
 {
-    asm_prints(node->filename, _WHITE_COLOR);
+    print_abs_path(node);
     asm_prints(":\n", _WHITE_COLOR);
     DirNode *child;
     for (int i = 0; i < node->chd_ct; i++)
     {
         child = (node->children) + i;
         asm_prints(child->filename, child->is_dir ? _RED_COLOR : _WHITE_COLOR);
-        if(i<node->chd_ct - 1)
+        if (i < node->chd_ct - 1)
             asm_prints("  ", _WHITE_COLOR);
     }
     asm_prints("\n", _WHITE_COLOR);
-}
+};
+
 void detailed_print(DirNode *node)
 {
-    
-}
+    print_abs_path(node);
+    asm_prints(" ", _WHITE_COLOR);
+    asm_printi(node->count_subdir());
+    asm_prints(" ", _WHITE_COLOR);
+    asm_printi(node->count_subfile());
+    asm_prints(":\n", _WHITE_COLOR);
+
+    DirNode *child;
+    for (int i = 0; i < node->chd_ct; i++)
+    {
+        child = node->children + i;
+        asm_prints(child->filename, child->is_dir ? _RED_COLOR : _WHITE_COLOR);
+        if (strcmp(child->filename, ".") == 0 || strcmp(child->filename, "..") == 0)
+            continue;
+        if (child->is_dir)
+        {
+            asm_prints("  ", _WHITE_COLOR);
+            asm_printi(child->count_subdir());
+            asm_prints(" ", _WHITE_COLOR);
+            asm_printi(child->count_subfile());
+        }
+        else
+        {
+            asm_prints("  ", _WHITE_COLOR);
+            asm_printi(child->size);
+        }
+        asm_prints("\n", _WHITE_COLOR);
+    }
+};
+
+void print_abs_path(DirNode *node)
+{
+    if (!node->is_dir)
+        return;
+    stack<DirNode *> node_stk;
+    DirNode *tmp = node;
+    while (tmp != nullptr)
+    {
+        node_stk.push(tmp);
+        tmp = tmp->parent;
+    }
+    while (!node_stk.empty())
+    {
+        tmp = node_stk.top();
+        node_stk.pop();
+        asm_prints(tmp->filename, _WHITE_COLOR);
+    }
+};
 
 Fat12Header &parse_header(byte *header)
 {
@@ -359,7 +433,7 @@ Fat12Header &parse_header(byte *header)
     idx++;
 
     return res;
-}
+};
 
 DirEntry &parse_entry(byte *entry)
 {
@@ -386,7 +460,7 @@ DirEntry &parse_entry(byte *entry)
     idx++;
 
     return res;
-}
+};
 
 number bs2n(byte *bytes, int n)
 {
@@ -409,9 +483,9 @@ number bs2n(byte *bytes, int n)
         res += bit;
     }
     return res;
-}
+};
 
 void hint()
 {
     cout << "Wrong command. Please retry." << endl;
-}
+};
