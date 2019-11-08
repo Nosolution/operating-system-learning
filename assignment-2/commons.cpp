@@ -1,5 +1,12 @@
 #include "commons.h"
 
+
+/**
+ * Parse bytes to number
+ * @param   bytes   bytes to be convert   
+ * @param   n       number of bytes
+ * @return  number that parsed into
+ */
 number bs2n(const byte *bytes, int n)
 {
     number res = 0;

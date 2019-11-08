@@ -10,5 +10,6 @@ struct DirEntry
     number fstclus;
     number filesize;
 };
+//abstolute offset of each attr in bytes
 const int deatrofs[] = {0, 11, 12, 22, 24, 26, 28, 32};
 DirEntry parse_entry(byte *entry);

@@ -22,7 +22,7 @@ struct Fat12Header
     byte BS_VolLab[11];     //卷标，必须是11个字符，不足以空格填充
     byte BS_FileSysType[8]; //文件系统类型，必须是8个字符，不足填充空格
 };
-
+//abstolute offset of each attr in bytes
 const int hatrofs[] = {0, 3, 11, 13, 14, 16, 17, 19, 21, 22, 24, 26, 28, 32, 36, 37, 38, 39, 43, 54, 62, 510, 512};
 
 Fat12Header parse_header(const byte *);

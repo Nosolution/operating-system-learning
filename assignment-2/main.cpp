@@ -33,9 +33,6 @@ const byte VOLUME_ID = 0x08;
 const byte DIRECTORY = 0x10;
 const byte ARCHIVE = 0x20;
 
-Fat12Header parse_header(const byte *);
-DirEntry parse_entry(byte *entry);
-number bs2n(const byte *bytes, int n);
 fatnum *get_fatlist(char *bytes);
 DirNode &read_meta_data(DirNode &node, const fatnum *fatlist, ifstream &fs);
 byte *read_data(const number fstclus, const number size, const fatnum *fatlist, ifstream &fs);
@@ -54,26 +51,29 @@ int main()
 {
     ifstream img;
     img.open("img/data.img", ios::binary);
+    //read header
     char header_bytes[_BLOCK_SIZE];
     img.seekg(_BLOCK_SIZE * _BPB_ST, ios::beg);
     img.read(header_bytes, _BLOCK_SIZE);
-    Fat12Header header = parse_header((const byte*)header_bytes);
-
+    Fat12Header header = parse_header((const byte *)header_bytes);
+    //read fatlist
     char fat_bytes[_BLOCK_SIZE * 9];
     img.seekg(_BLOCK_SIZE * _FAT_ST, ios::beg);
     img.read(fat_bytes, _BLOCK_SIZE * 9);
     fatnum *fatlist = get_fatlist(fat_bytes);
-
+    //root name is under determination
     DirNode root{"/", true, 0};
     img.seekg(_BLOCK_SIZE * _ROOT_ENTRY_ST, ios::beg);
+    //because data of files/subdirs in root are not stored in data area, need to manually call function
     for (unsigned int i = 0; i < header.BPB_DirEntCnt; i++)
     {
         read_meta_data(root, fatlist, img);
         img.seekg(_DIR_ITEM_SIZE, ios::cur);
     }
-    cout << "Hello World!" << endl;
+    // cout << "Hello World!" << endl;
     string line, cmd, opt, param;
     int code;
+    //loop until quit command are input
     while (true)
     {
         getline(cin, line);
@@ -100,7 +100,7 @@ int main()
                 queue<DirNode *> node_q;
                 node_q.push(cur);
                 while (!node_q.empty())
-                {
+                {   //print by bfs
                     node = node_q.front();
                     print_func(node);
                     for (unsigned int i = 0; i < node->chd_ct; i++)
@@ -129,6 +129,13 @@ int main()
     return 0;
 };
 
+/**
+ * Read meta data(meaning reading information of every dir entry instead of file data)
+ * @param   node    the node that read data will be stored in
+ * @param   fatlist linked list of cluster numbers
+ * @param   fs      stream containing corresponding bytes
+ * @return  also param1  
+ */
 DirNode &read_meta_data(DirNode &node, const fatnum *fatlist, ifstream &fs)
 {
     if (node.is_dir)
@@ -155,6 +162,14 @@ DirNode &read_meta_data(DirNode &node, const fatnum *fatlist, ifstream &fs)
     return node;
 };
 
+/**
+ * Read binary data by given fat image info.
+ * @param   fstclus     starting cluster number of fat
+ * @param   size        number of bytes to be read
+ * @param   fatlist     linked list of cluster numbers
+ * @param   fs          stream containing corresponding bytes
+ * @return  gotten bytes
+ */
 byte *read_data(const number fstclus, const number size, const fatnum *fatlist, ifstream &fs)
 {
     byte *data = new byte[size];
@@ -184,6 +199,14 @@ fatnum *get_fatlist(char *bytes)
     return res;
 };
 
+/**
+ * Parse command from given str. For now only 'ls', 'cat' and 'quit' commands are supoorted.
+ * @param   line    raw str to be parsed
+ * @param   cmd     storing location for parsed cmd
+ * @param   opt     storing location for parsed option
+ * @param   param   storing location for parsed param(no multi params for now)
+ * @return  result of parsing represented by integer code. 
+ */
 int parse_cmd(const string &line, string &cmd, string &opt, string &param)
 {
     string word;
@@ -251,21 +274,40 @@ int parse_cmd(const string &line, string &cmd, string &opt, string &param)
     return _WRONG_COMMAND;
 };
 
+/**
+ * Get next word from current char ptr and return the ptr pointed to the location of next word 
+ * @param   st    starting char ptr
+ * @param   len   length to search a word
+ * @param   word  str var to store the word got
+ * @return  The ptr pointing to the location of next word
+ */
 const char *next_word(const char *st, int &len, string &word)
 {
     if (len == 0)
         return st;
     else
     {
-        const char *ed = find(st, st + len, ' ');
+        //consider starting from spaces
+        const char *ed = st;
+        while (ed != st + len && *ed == ' ')
+                ed++;
+        if (ed == st + len)
+                return ed;
+        //start from first non-space char
+        st = ed;    
+        ed = find(st, st + len, ' ');
         word = string(st, ed);
         while (ed != st + len && *ed == ' ') // skip multiple space
             ed++;
         len -= (ed - st);
-        return ed + 1;
+        return ed;
     }
 };
 
+/**
+ * Print the simplified info of selected directory, including subdirs and fils in this dir.
+ * @param   node    starting dir node
+ */ 
 void plain_print(DirNode *node)
 {
     print_abs_path(node);
@@ -281,6 +323,11 @@ void plain_print(DirNode *node)
     asm_prints("\n", _WHITE_COLOR);
 };
 
+
+/**
+ * Print the detailed info of selected directory, including subdirs and fils in this dir with number of files in it or size of the file.
+ * @param   node    starting dir node
+ */
 void detailed_print(DirNode *node)
 {
     print_abs_path(node);
@@ -313,6 +360,10 @@ void detailed_print(DirNode *node)
     }
 };
 
+/**
+ * Print the absolute path of the directory.
+ * @param   node    starting dir node
+ */
 void print_abs_path(DirNode *node)
 {
     if (!node->is_dir)
@@ -332,7 +383,9 @@ void print_abs_path(DirNode *node)
     }
 };
 
-
+/**
+ * Print command hint when errors occur.
+ */ 
 void hint()
 {
     cout << "Wrong command. Please retry." << endl;

@@ -1,6 +1,12 @@
 #include <cstring>
 #include "fat12header.h"
 
+
+/**
+ * Parse fat12header from bytes
+ * @param   header      bytes storing info of an header
+ * @return  fat12header that parsed info   
+ */
 Fat12Header parse_header(const byte *header)
 {
     int idx = 0;
