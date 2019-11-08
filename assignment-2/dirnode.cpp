@@ -20,7 +20,7 @@ DirNode& DirNode::add_child(DirNode* node)
     return *this;
 };
 
-DirNode* DirNode::find(const char* path)
+DirNode* DirNode::find(const char* const path)
 {
     if(!this->is_dir)
         return nullptr;

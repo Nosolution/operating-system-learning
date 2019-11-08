@@ -5,11 +5,11 @@
 class DirNode
 {
     public:
-        char* filename;
+        const char* filename;
         bool is_dir;
         void* entry;
-        int size;
-        int chd_ct;
+        unsigned int size;
+        unsigned int chd_ct;
         DirNode* children;
         DirNode* parent;
 
@@ -24,7 +24,7 @@ class DirNode
             children = nullptr;
         };
 
-        DirNode(char* name, bool id, int sz)
+        DirNode(const char* name, bool id, unsigned int sz)
         {
             filename = name;
             is_dir = id;
@@ -36,8 +36,10 @@ class DirNode
 
             if(id)
             {
-                add_child(&parent_node());
-                add_child(&cur_node());
+                DirNode parent{".", true, 0};
+                add_child(&parent);
+                DirNode cur{"..", true, 0};
+                add_child(&cur);
                 size = 0;
             }
         }

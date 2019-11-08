@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <stack>
 #include <queue>
-#include "dirnode.h"
+#include "includes.h"
 #define _BLOCK_SIZE 512
 #define _FAT_ITEM_LEN 12
 #define _DIR_ITEM_SIZE 32
@@ -22,46 +22,8 @@
 #define _NO_PARAM 4
 #define _WHITE_COLOR 10
 #define _RED_COLOR 12
-typedef unsigned short fatnum;
-typedef unsigned char byte;
-typedef unsigned int number;
 
 using namespace std;
-struct Fat12Header
-{
-    byte BS_OEMName[8];     //OEM字符串，必须为8个字符，不足以空格填空
-    number BPB_BytsPerSec;  //每扇区字节数, 默认为512
-    number BPB_SecPerClus;  //每簇占用的扇区数, 默认为1
-    number BPB_RsvdSecCnt;  //Boot占用的扇区数, 默认为1
-    number BPB_NumFATs;     //FAT表的记录数
-    number BPB_DirEntCnt;   //最大根目录文件数
-    number BPB_TotSec16;    //每个FAT占用扇区数
-    byte BPB_Media;         //媒体描述符
-    number BPB_FATSz16;     //每个FAT占用扇区数
-    number BPB_SecPerTrk;   //每个磁道扇区数
-    number BPB_NumHeads;    //磁头数
-    number BPB_HiddSec;     //隐藏扇区数
-    number BPB_TotSec32;    //如果BPB_TotSec16是0，则在这里记录
-    byte BS_DrvNum;         //中断13的驱动器号
-    byte BS_Reserved1;      //未使用
-    byte BS_BootSig;        //扩展引导标志
-    number BS_VolID;        //卷序列号
-    byte BS_VolLab[11];     //卷标，必须是11个字符，不足以空格填充
-    byte BS_FileSysType[8]; //文件系统类型，必须是8个字符，不足填充空格
-};
-struct DirEntry
-{
-    byte dirname[11];
-    byte dirattr;
-    byte reserve[10];
-    number wrttime;
-    number wrtdate;
-    number fstclus;
-    number filesize;
-};
-
-const int hatrofs[] = {0, 3, 11, 13, 14, 16, 17, 19, 21, 22, 24, 26, 28, 32, 36, 37, 38, 39, 43, 54, 62, 510, 512};
-const int deatrofs[] = {0, 11, 12, 22, 24, 26, 28, 32};
 const int hd_attr_ct = 22;
 const int de_attr_ct = 7;
 const byte READ_ONLY = 0x01;
@@ -71,13 +33,13 @@ const byte VOLUME_ID = 0x08;
 const byte DIRECTORY = 0x10;
 const byte ARCHIVE = 0x20;
 
-Fat12Header &parse_header(char *);
-DirEntry &parse_entry(byte *entry);
-number bs2n(byte *bytes, int n);
+Fat12Header parse_header(const byte *);
+DirEntry parse_entry(byte *entry);
+number bs2n(const byte *bytes, int n);
 fatnum *get_fatlist(char *bytes);
 DirNode &read_meta_data(DirNode &node, const fatnum *fatlist, ifstream &fs);
 byte *read_data(const number fstclus, const number size, const fatnum *fatlist, ifstream &fs);
-int parse_cmd(string &line, string &cmd, string &opt, string &param);
+int parse_cmd(const string &line, string &cmd, string &opt, string &param);
 const char *next_word(const char *st, int &len, string &word);
 void bfs_print_node(DirNode *node, void (*print)(DirNode *node));
 void plain_print(DirNode *node);
@@ -85,7 +47,7 @@ void detailed_print(DirNode *node);
 void print_abs_path(DirNode *node);
 void asm_prints(const char *s, int color);  //print str in color
 void asm_printi(const int i);               //print number
-void asm_printcs(const char* s, int count);//print str in size
+void asm_printcs(const char *s, int count); //print str in size
 void hint();
 
 int main()
@@ -95,7 +57,7 @@ int main()
     char header_bytes[_BLOCK_SIZE];
     img.seekg(_BLOCK_SIZE * _BPB_ST, ios::beg);
     img.read(header_bytes, _BLOCK_SIZE);
-    Fat12Header header = parse_header(header_bytes);
+    Fat12Header header = parse_header((const byte*)header_bytes);
 
     char fat_bytes[_BLOCK_SIZE * 9];
     img.seekg(_BLOCK_SIZE * _FAT_ST, ios::beg);
@@ -104,7 +66,7 @@ int main()
 
     DirNode root{"/", true, 0};
     img.seekg(_BLOCK_SIZE * _ROOT_ENTRY_ST, ios::beg);
-    for (int i = 0; i < header.BPB_DirEntCnt; i++)
+    for (unsigned int i = 0; i < header.BPB_DirEntCnt; i++)
     {
         read_meta_data(root, fatlist, img);
         img.seekg(_DIR_ITEM_SIZE, ios::cur);
@@ -126,8 +88,8 @@ int main()
             else if (cmd.compare("ls") == 0)
             {
                 char main_dir[60] = "main";
-                strcat(main_dir, param.c_str());
                 root.filename = "main"; //make method perform consistantly
+                strcat(main_dir, param.c_str());
                 DirNode *cur = root.find(main_dir);
                 root.filename = "";
 
@@ -135,13 +97,13 @@ int main()
                 print_func = opt.length() > 0 ? detailed_print : plain_print;
 
                 DirNode *node, *tmp;
-                queue<DirNode*> node_q;
-                node_q.push(&root);
+                queue<DirNode *> node_q;
+                node_q.push(cur);
                 while (!node_q.empty())
                 {
                     node = node_q.front();
                     print_func(node);
-                    for (int i = 0; i < node->chd_ct; i++)
+                    for (unsigned int i = 0; i < node->chd_ct; i++)
                     {
                         tmp = node->children + i;
                         if (strcmp(tmp->filename, ".") == 0 || strcmp(tmp->filename, "..") == 0)
@@ -154,10 +116,9 @@ int main()
             else if (cmd.compare("cat") == 0)
             {
                 DirNode *node = root.find(param.c_str());
-                DirEntry* entry = ((DirEntry*)node->entry);
+                DirEntry *entry = ((DirEntry *)node->entry);
                 byte *data = read_data(entry->fstclus, entry->filesize, fatlist, img);
-                byte a = 1;
-                asm_printcs(const_cast<char*>((char*)data), entry->filesize);
+                asm_printcs(const_cast<char *>((char *)data), entry->filesize);
             }
         }
         else
@@ -175,7 +136,7 @@ DirNode &read_meta_data(DirNode &node, const fatnum *fatlist, ifstream &fs)
         DirEntry *entry = (DirEntry *)node.entry;
         byte *data = read_data(entry->fstclus, entry->filesize, fatlist, fs);
         byte *entry_bytes = new byte[_DIR_ITEM_SIZE];
-        int count = 0;
+        unsigned int count = 0;
         DirEntry chd_entry;
 
         while (count * _DIR_ITEM_SIZE < (*entry).filesize)
@@ -223,7 +184,7 @@ fatnum *get_fatlist(char *bytes)
     return res;
 };
 
-int parse_cmd(string &line, string &cmd, string &opt, string &param)
+int parse_cmd(const string &line, string &cmd, string &opt, string &param)
 {
     string word;
     cmd = "";
@@ -244,7 +205,7 @@ int parse_cmd(string &line, string &cmd, string &opt, string &param)
                     return _WRONG_OPTION;
                 else
                 { //judge if multi options are all the same;
-                    for (int i = 1; i < word.length(); i++)
+                    for (unsigned int i = 1; i < word.length(); i++)
                     {
                         if (word[i] != 'l')
                             return _WRONG_OPTION;
@@ -310,7 +271,7 @@ void plain_print(DirNode *node)
     print_abs_path(node);
     asm_prints(":\n", _WHITE_COLOR);
     DirNode *child;
-    for (int i = 0; i < node->chd_ct; i++)
+    for (unsigned int i = 0; i < node->chd_ct; i++)
     {
         child = (node->children) + i;
         asm_prints(child->filename, child->is_dir ? _RED_COLOR : _WHITE_COLOR);
@@ -330,7 +291,7 @@ void detailed_print(DirNode *node)
     asm_prints(":\n", _WHITE_COLOR);
 
     DirNode *child;
-    for (int i = 0; i < node->chd_ct; i++)
+    for (unsigned int i = 0; i < node->chd_ct; i++)
     {
         child = node->children + i;
         asm_prints(child->filename, child->is_dir ? _RED_COLOR : _WHITE_COLOR);
@@ -371,119 +332,6 @@ void print_abs_path(DirNode *node)
     }
 };
 
-Fat12Header &parse_header(byte *header)
-{
-    int idx = 0;
-    Fat12Header res;
-    memcpy(res.BS_OEMName, header + hatrofs[idx], hatrofs[idx + 1] - hatrofs[idx]);
-    idx++;
-
-    res.BPB_BytsPerSec = bs2n(header + hatrofs[idx], hatrofs[idx + 1] - hatrofs[idx]);
-    idx++;
-
-    res.BPB_SecPerClus = bs2n(header + hatrofs[idx], hatrofs[idx + 1] - hatrofs[idx]);
-    idx++;
-
-    res.BPB_SecPerClus = bs2n(header + hatrofs[idx], hatrofs[idx + 1] - hatrofs[idx]);
-    idx++;
-
-    res.BPB_NumFATs = bs2n(header + hatrofs[idx], hatrofs[idx + 1] - hatrofs[idx]);
-    idx++;
-
-    res.BPB_DirEntCnt = bs2n(header + hatrofs[idx], hatrofs[idx + 1] - hatrofs[idx]);
-    idx++;
-
-    res.BPB_TotSec16 = bs2n(header + hatrofs[idx], hatrofs[idx + 1] - hatrofs[idx]);
-    idx++;
-
-    res.BPB_Media = *(header + hatrofs[idx]);
-    idx++;
-
-    res.BPB_FATSz16 = bs2n(header + hatrofs[idx], hatrofs[idx + 1] - hatrofs[idx]);
-    idx++;
-
-    res.BPB_SecPerTrk = bs2n(header + hatrofs[idx], hatrofs[idx + 1] - hatrofs[idx]);
-    idx++;
-
-    res.BPB_NumHeads = bs2n(header + hatrofs[idx], hatrofs[idx + 1] - hatrofs[idx]);
-    idx++;
-
-    res.BPB_HiddSec = bs2n(header + hatrofs[idx], hatrofs[idx + 1] - hatrofs[idx]);
-    idx++;
-
-    res.BPB_TotSec32 = bs2n(header + hatrofs[idx], hatrofs[idx + 1] - hatrofs[idx]);
-    idx++;
-
-    res.BS_DrvNum = *(header + hatrofs[idx]);
-    idx++;
-
-    res.BS_Reserved1 = *(header + hatrofs[idx]);
-    idx++;
-
-    res.BS_BootSig = *(header + hatrofs[idx]);
-    idx++;
-
-    res.BS_VolID = bs2n(header + hatrofs[idx], hatrofs[idx + 1] - hatrofs[idx]);
-    idx++;
-
-    memcpy(res.BS_VolLab, header + hatrofs[idx], hatrofs[idx + 1] - hatrofs[idx]);
-    idx++;
-
-    memcpy(res.BS_FileSysType, header + hatrofs[idx], hatrofs[idx + 1] - hatrofs[idx]);
-    idx++;
-
-    return res;
-};
-
-DirEntry &parse_entry(byte *entry)
-{
-    int idx = 0;
-    DirEntry res;
-    memcpy(res.dirname, entry + deatrofs[idx], deatrofs[idx + 1] - deatrofs[idx]);
-    idx++;
-
-    res.dirattr = *(entry + deatrofs[idx++]);
-
-    memcpy(res.reserve, entry + deatrofs[idx], deatrofs[idx + 1] - deatrofs[idx]);
-    idx++;
-
-    res.wrttime = bs2n(entry + deatrofs[idx], deatrofs[idx + 1] - deatrofs[idx]);
-    idx++;
-
-    res.wrtdate = bs2n(entry + deatrofs[idx], deatrofs[idx + 1] - deatrofs[idx]);
-    idx++;
-
-    res.fstclus = bs2n(entry + deatrofs[idx], deatrofs[idx + 1] - deatrofs[idx]);
-    idx++;
-
-    res.filesize = bs2n(entry + deatrofs[idx], deatrofs[idx + 1] - deatrofs[idx]);
-    idx++;
-
-    return res;
-};
-
-number bs2n(byte *bytes, int n)
-{
-    number res = 0;
-    const short base = 256;
-    for (int i = n - 1; i >= 0; i--)
-    {
-        byte b = bytes[i];
-        res *= base;
-        number bit = 0;
-        for (int j = 7; j >= 0; j--)
-        {
-            bit *= 2;
-            if (b & 0x10)
-            {
-                bit++;
-            }
-            b = b << 1;
-        }
-        res += bit;
-    }
-    return res;
-};
 
 void hint()
 {

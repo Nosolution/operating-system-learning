@@ -1,6 +1,6 @@
 bximage->fd->1.44->data.img
 mkfs.vfat -F 12 data.img
-mount data.img data/ -o loop
+sudo mount img/data.img data/ -o loop
 unmount data.img 
 
 
