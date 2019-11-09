@@ -1,16 +1,15 @@
 #include <cstring>
 #include "fat12header.h"
 
-
 /**
  * Parse fat12header from bytes
  * @param   header      bytes storing info of an header
  * @return  fat12header that parsed info   
  */
-Fat12Header parse_header(const byte *header)
+Fat12Header& parse_header(const byte *header)
 {
-    int idx = 0;
-    Fat12Header res;
+    int idx = 1;
+    Fat12Header& res = *new Fat12Header;
     memcpy(res.BS_OEMName, header + hatrofs[idx], hatrofs[idx + 1] - hatrofs[idx]);
     idx++;
 

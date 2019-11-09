@@ -1,0 +1,61 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",// 任务名称，与launch.json的preLaunchTask相对应
+            "type": "process",// process是vsc把预定义变量和转义解析后直接全部传给command；shell相当于先打开shell再输入命令，所以args还会经过shell再解析一遍
+            "command": "g++",// 要使用的编译器，C++用clang++；如果编译失败，改成gcc或g++试试，还有问题那就是你自己的代码有错误
+            "args": [
+                "${file}",
+                "-o",
+                "${fileDirname}/${fileBasenameNoExtension}",
+                "-g",
+                "-Wall",
+                "-static-libgcc"
+                // "-std=c11", // C++最新标准为c++17，或根据自己的需要进行修改
+            ],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",// 执行任务时是否跳转到终端面板，可以为always，silent，never。具体参见VSC的文档
+                "focus": false,
+                "panel": "shared"// 不同的文件的编译信息共享一个终端面板
+            },
+            "problemMatcher": [
+                "$gcc"// 此选项可以捕捉编译时终端里的报错信息；本文用的是clang，开了可能会出现双重报错信息；只用cpptools可以考虑启用
+            ],
+            "group": "build"
+        },
+        {
+            "type": "shell",
+            "label": "g++ build active file",
+            "command": "/usr/bin/g++",
+            "args": [
+                "-g",
+                "${file}",
+                "-o",
+                "${fileDirname}/${fileBasenameNoExtension}"
+            ],
+            "options": {
+                "cwd": "/usr/bin"
+            }
+        },
+        {
+
+            "label": "make",// 任务名称，与launch.json的preLaunchTask相对应
+            "type": "process",// process是vsc把预定义变量和转义解析后直接全部传给command；shell相当于先打开shell再输入命令，所以args还会经过shell再解析一遍
+            "command": "make",// 要使用的编译器，C++用clang++；如果编译失败，改成gcc或g++试试，还有问题那就是你自己的代码有错误
+            "args": [
+                
+            ],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",// 执行任务时是否跳转到终端面板，可以为always，silent，never。具体参见VSC的文档
+                "focus": false,
+                "panel": "shared"// 不同的文件的编译信息共享一个终端面板
+            },
+            // "problemMatcher": [
+            //     "$gcc"// 此选项可以捕捉编译时终端里的报错信息；本文用的是clang，开了可能会出现双重报错信息；只用cpptools可以考虑启用
+            // ]
+        }
+    ]
+}

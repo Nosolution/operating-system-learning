@@ -1,2 +1,4 @@
-/assignment-2/main.exe
-/.vscode/
+assignment-2/main
+**/*.o
+assignment-2/test.cpp
+assignment-2/test

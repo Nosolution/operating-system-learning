@@ -4,63 +4,34 @@
 
 class DirNode
 {
-    public:
-        const char* filename;
-        bool is_dir;
-        void* entry;
-        unsigned int size;
-        unsigned int chd_ct;
-        DirNode* children;
-        DirNode* parent;
+public:
+    const char *name;
+    bool is_dir;
+    void *entry;
+    unsigned int size;
+    unsigned int chd_ct;
+    DirNode *children;
+    DirNode *parent;
 
-        DirNode()
-        {
-            filename = "";
-            is_dir = false;
-            entry = nullptr;
-            size = 0;
-            parent = nullptr;
-            chd_ct = 0;
-            children = nullptr;
-        };
+    DirNode();
+    DirNode(const char *name, bool id, unsigned int sz);
 
-        DirNode(const char* name, bool id, unsigned int sz)
-        {
-            filename = name;
-            is_dir = id;
-            entry = nullptr;
-            size = sz;
-            parent = nullptr;
-            chd_ct = 0;
-            children = nullptr;
+    DirNode &add_child(DirNode *node);
 
-            if(id)
-            {
-                DirNode parent{".", true, 0};
-                add_child(&parent);
-                DirNode cur{"..", true, 0};
-                add_child(&cur);
-                size = 0;
-            }
-        }
+    DirNode *find(const char *path);
 
-        DirNode& add_child(DirNode* node);
+    int count_subdir();
+    int count_subfile();
 
-        DirNode* find(const char* name);
+    static DirNode parent_node(void)
+    {
+        DirNode node{".", true, 0};
+        return node;
+    };
 
-        int count_subdir();
-        int count_subfile();
-
-        static DirNode parent_node(void)
-        {
-                DirNode node{".", true, 0};
-                return node;
-        };
-
-        static DirNode cur_node(void)
-        {
-                DirNode node{"..", true, 0};
-                return node;
-        };
+    static DirNode cur_node(void)
+    {
+        DirNode node{"..", true, 0};
+        return node;
+    };
 };
-

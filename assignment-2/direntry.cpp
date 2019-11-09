@@ -1,16 +1,15 @@
 #include <cstring>
 #include "direntry.h"
 
-
 /**
  * Parse entry from bytes
  * @param   entry       bytes storing info of an direntry
  * @return  direntry that parsed info   
  */
-DirEntry parse_entry(byte *entry)
+DirEntry& parse_entry(byte *entry)
 {
     int idx = 0;
-    DirEntry res;
+    DirEntry& res = *new DirEntry;
     memcpy(res.dirname, entry + deatrofs[idx], deatrofs[idx + 1] - deatrofs[idx]);
     idx++;
 

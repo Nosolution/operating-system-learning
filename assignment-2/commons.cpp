@@ -19,7 +19,7 @@ number bs2n(const byte *bytes, int n)
         for (int j = 7; j >= 0; j--)
         {
             bit *= 2;
-            if (b & 0x10)
+            if (b & 0x80)
             {
                 bit++;
             }

@@ -1,7 +1,26 @@
 bximage->fd->1.44->data.img
 mkfs.vfat -F 12 data.img
 sudo mount img/data.img data/ -o loop
-unmount data.img 
+unmount data/ 
+
+BytesPerSec = 5125
+SecPerClus = 1
+RsvSecCnt = 0
+NumFATs = 2
+DirEntCnt = 0
+TotSec16 = 224
+Media = 240'\360'
+FATSz16 = 9
+SecPerTrk = 18
+NumHeaders = 2
+HiddSec = 0
+TotSec32 = 0
+DrvNum = 0
+Reserved1 = 0
+BootSig = 41
+VollD = 1068262606
+VolLab = NO NAME
+FileSysType = FAT12
 
 
 
