@@ -21,7 +21,7 @@
                 "panel": "shared"// 不同的文件的编译信息共享一个终端面板
             },
             "problemMatcher": [
-                "$gcc"// 此选项可以捕捉编译时终端里的报错信息；本文用的是clang，开了可能会出现双重报错信息；只用cpptools可以考虑启用
+                "$gcc"// 此选项可以捕捉编译时终端里的报错信息；
             ],
             "group": "build"
         },
@@ -43,9 +43,9 @@
 
             "label": "make",// 任务名称，与launch.json的preLaunchTask相对应
             "type": "process",// process是vsc把预定义变量和转义解析后直接全部传给command；shell相当于先打开shell再输入命令，所以args还会经过shell再解析一遍
-            "command": "make",// 要使用的编译器，C++用clang++；如果编译失败，改成gcc或g++试试，还有问题那就是你自己的代码有错误
+            "command": "make",// 要使用的命令
             "args": [
-                
+
             ],
             "presentation": {
                 "echo": true,
@@ -54,7 +54,7 @@
                 "panel": "shared"// 不同的文件的编译信息共享一个终端面板
             },
             // "problemMatcher": [
-            //     "$gcc"// 此选项可以捕捉编译时终端里的报错信息；本文用的是clang，开了可能会出现双重报错信息；只用cpptools可以考虑启用
+            //     "$gcc"// 此选项可以捕捉编译时终端里的报错信息；
             // ]
         }
     ]

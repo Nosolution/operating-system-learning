@@ -2,7 +2,7 @@
 
 
 /**
- * Parse bytes to number
+ * Parse bytes to number, assumed Little-Endian
  * @param   bytes   bytes to be convert   
  * @param   n       number of bytes
  * @return  number that parsed into

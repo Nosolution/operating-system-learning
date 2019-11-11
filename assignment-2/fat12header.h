@@ -25,4 +25,4 @@ struct Fat12Header
 //abstolute offset of each attr in bytes
 const int hatrofs[] = {0, 3, 11, 13, 14, 16, 17, 19, 21, 22, 24, 26, 28, 32, 36, 37, 38, 39, 43, 54, 62, 510, 512};
 const int hd_attr_ct = 22;
-Fat12Header& parse_header(const byte *);
+Fat12Header* parse_header(const byte *);

@@ -22,35 +22,20 @@ DirNode::DirNode(const char *nm, bool id, unsigned int sz)
     parent = nullptr;
     chd_ct = 0;
     children = nullptr;
-
-    // if (id)
-    // {
-    //     DirNode cur{".", false, 0};
-    //     cur.is_dir = true;
-    //     add_child(&cur);
-    //     DirNode parent{"..", false, 0};
-    //     parent.is_dir = true; //avoid infinite construction
-    //     add_child(&parent);
-    //     size = 0;
-    // }
 };
 
 DirNode &DirNode::add_child(DirNode *node)
 {
     if (chd_ct == 0)
     {
-        this->children = new DirNode[30];
-        children[0] = *node;
+        this->children = new DirNode *[30];
+        children[0] = node;
     }
     else
     {
-        children[chd_ct] = *node;
+        children[chd_ct] = node;
     }
     chd_ct++;
-    if (node->parent == nullptr)
-    {
-        node->parent = new DirNode[1];
-    }
     node->parent = this;
     return *this;
 };
@@ -64,7 +49,7 @@ DirNode *DirNode::find(const char *path)
     {
         for (int i = 0; i < ed - path; i++)
         {
-            if (name[i] != path[i]) //if filename is not the top dir
+            if (name[i] != path[i]) //if current dir is not the top dir
                 return nullptr;
         }
         if (std::strlen(path) == 0 || (ed - path) >= (std::strlen(path) - 1)) // dir/ or dir
@@ -74,7 +59,7 @@ DirNode *DirNode::find(const char *path)
             DirNode *res;
             for (unsigned int i = 0; i < chd_ct; i++)
             {
-                DirNode *child = children + i;
+                DirNode *child = children[i];
                 if (std::strcmp(child->name, ".") == 0 || std::strcmp(child->name, "..") == 0)
                     continue; //skip the parent dir and current dir
 
@@ -95,7 +80,7 @@ int DirNode::count_subdir()
     DirNode *child;
     for (unsigned int i = 0; i < chd_ct; i++)
     {
-        child = children + i;
+        child = children[i];
         if (strcmp(child->name, ".") == 0 || strcmp(child->name, "..") == 0)
             continue;
         if (child->is_dir)
@@ -111,7 +96,7 @@ int DirNode::count_subfile()
     DirNode *child;
     for (unsigned int i = 0; i < chd_ct; i++)
     {
-        child = children + i;
+        child = children[i];
         if (strcmp(child->name, ".") == 0 || strcmp(child->name, "..") == 0)
             continue;
         if (!child->is_dir)

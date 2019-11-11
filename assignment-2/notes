@@ -1,26 +1,71 @@
 bximage->fd->1.44->data.img
 mkfs.vfat -F 12 data.img
-sudo mount img/data.img data/ -o loop
-unmount data/ 
+sudo mount data.img data/ -o loop
+sudo umount data/
 
-BytesPerSec = 5125
-SecPerClus = 1
-RsvSecCnt = 0
-NumFATs = 2
-DirEntCnt = 0
-TotSec16 = 224
-Media = 240'\360'
-FATSz16 = 9
-SecPerTrk = 18
-NumHeaders = 2
-HiddSec = 0
-TotSec32 = 0
-DrvNum = 0
-Reserved1 = 0
-BootSig = 41
-VollD = 1068262606
-VolLab = NO NAME
-FileSysType = FAT12
+%!xxd
+:ser number
+
+ARTS.MD begins from 6176|6177
+BIND begins from 4608
 
 
+属性：
+\033[0m 关闭所有属性 
+\033[1m 高亮
+\033[2m 亮度减半
+\033[3m 斜体
+\033[4m 下划线 
+\033[5m 闪烁 
+\033[6m 快闪
+\033[7m 反显 
+\033[8m 消隐 
+\033[9m 中间一道横线
 
+颜色：
+30:黑
+31:红
+32:绿
+33:黄
+34:蓝色
+35:紫色
+36:深绿
+37:白色
+
+
+Midnight in the Garden of East Texas
+
+Marjorie Nugent was the richest widow in an eccentric town full of rich widows. Bernie Tiede was an assistant funeral home director who became her companion. When she disappeared, nobody seemed alarmed. When he confessed to killing her, nobody seemed outraged.
+
+Sitting at his regular table at Daddy Sam’s BBQ and Catfish (“You Kill It, I’ll Cook It”) in the East Texas town of Carthage, district attorney Danny Buck Davidson began to realize that he might have some problems prosecuting Bernie Tiede for murder.
+
+“Bernie’s a sweet man, Danny Buck,” a waitress said. “He’s done a lot of good things for this town. He’s given poor kids money to go to college and everything.”
+
+“You got to admit nobody could sing ‘Amazing Grace’ like Bernie could,” someone else said.
+
+The bulldog-faced Danny Buck took a bite of slaw and sipped his iced tea. “Now y’all know that Bernie confessed, don’t you?” he said, trying to keep his voice calm. “He came right out and told a Texas Ranger that he shot Mrs. Nugent four times in the back and then stuffed her in her own deep freeze in her kitchen.”
+
+There was a long silence. “Danny Buck,” one man finally said, “it’s just hard for me to believe that old Bernie could fire a gun straight. He acts . . . well, you know . . . effeminate! You can tell he’s never been deer hunting in his entire life.”
+
+
+“And you know what?” a woman told Danny Buck later at a convenience store. “I don’t care if Mrs. Nugent was the richest lady in town. She was so mean that even if Bernie did kill her, you won’t be able to find anyone in town who’s going to convict him for murder.”
+
+Danny Buck Davidson had spent almost all of his fifty years in Carthage, the past three as district attorney, and neither he nor the town of 6,500 was accustomed to high-profile killings. Every couple of years or so a murder case would come across the DA’s desk, usually involving a resident from one of the poorer neighborhoods. But nobody from the respectable side of town ever seemed to get in trouble, as long as you didn’t count the recent conviction of Carthage state senator Drew Nixon, who was caught soliciting an undercover cop posing as a prostitute in Austin. Even then, Carthage’s civic leaders were able to put a good spin on Nixon’s arrest, saying that Nixon never would have had any problems if he had just stayed in Carthage. Carthage has no prostitutes.
+
+This past August, however, Carthage captured the attention of the entire country when the news broke that the town’s richest and snootiest widow, 81-year-old Mrs. Marjorie Nugent, had been found in the bottom of a large freezer in her home. What made the story peculiar was that Mrs. Nugent had been dead for almost nine months before people began searching for her. What made the story truly bizarre was the way many of the townspeople rallied around the 39-year-old man who had admitted to killing her and stealing her money—the soft-spoken, chubby-cheeked Bernie Tiede, the former assistant funeral director at Hawthorn Funeral Home who had gotten close to Mrs. Nugent when he supervised her husband’s funeral.
+
+“FROM THE DAY THAT DEEP FREEZE WAS OPENED, YOU HAVEN’T BEEN ABLE TO FIND ANYONE IN TOWN SAYING, ‘POOR MRS. NUGENT,’” SAID CITY COUNCILMAN OLIN JOFFRION, A RESPECTED CARTHAGE INSURANCE AGENT. “PEOPLE HERE ARE SAYING, ‘POOR BERNIE.’”
+
+For out-of-town reporters, the story of Bernie Tiede and Mrs. Nugent was like an East Texas version of Midnight in the Garden of Good and Evil, featuring a down-home gallery of characters entangled in an offbeat, tragic mystery. Wearing his flaming red chamber of commerce blazer, the town’s mayor, Carson Joines, posed for a People magazine photograph and then announced that Bernie might be acquitted. When Hard Copy arrived, Bernie’s former funeral home boss agreed to be interviewed sitting out by his backyard pool. Carthage’s congenial Methodist minister, the Reverend E. B. Beasley, gave reporters copies of a sermon he had preached the Sunday after Bernie’s arrest titled “When Life Doesn’t Make Sense.” “No matter what the truth is,” Beasley proclaimed, “Bernie will need our prayers. He needs to be with God, and he needs to know that we are with him.” The town refused to abandon Bernie even after Sheriff Jack Ellett announced during his Friday morning talk show on the local radio station, KGAS (“The Heartbeat of East Texas”), that deputies had confiscated nearly fifty videotapes from Bernie’s house, some showing men involved in illicit acts. “From the day that deep freeze was opened, you haven’t been able to find anyone in town saying, ‘Poor Mrs. Nugent,’” said city councilman Olin Joffrion, a respected Carthage insurance agent. “People here are saying, ‘Poor Bernie.’”
+
+In fact, throughout last fall, a stream of mostly female well-wishers visited Bernie in jail, bringing him cakes and pies. “If I made a list of people I knew were going to heaven,” one woman told the Houston Chronicle, “Bernie would be the first on that list.” At the grocery store and at Daddy Sam’s, other women came up to the district attorney and said they were praying for him to do the right thing. A disgusted Danny Buck told me, “It’s almost as if everyone has already forgotten that an elderly lady was shot to death.”
+
+TUCKED AWAY IN EAST TEXAS’S PINEY WOODS, about twenty miles from the Louisiana border, Carthage sits on what used to be one of the largest natural-gas fields in the world. In the forties and fifties the town was known as the gas capital of the U.S., and its citizens believe it is so rich in history that they’ve built dueling historical museums on opposite sides of the town square: the Panola County Historical Jail Museum and the Panola County Heritage Museum and Texas Tea Room. These days chamber of commerce representatives are promoting Carthage as Texas’s country music capital, the birthplace of such sensations as Tex Ritter, Jim Reeves, and budding solo star Linda Davis, a backup singer for Reba McEntire and a former Miss Panola County, who, according to one of her high school classmates, “would surely have won Miss Texas if she had gotten a boob job before the state pageant.” To improve tourist traffic, the chamber is planning to open a new museum this year devoted solely to Texas-born country music stars—the Texas Country Music Hall of Fame.
+
+All in all, Carthage, which made it into the 1995 edition of The Best 100 Small Towns in America, is an immensely likable place—“The kind of town,” says KGAS owner Jerry Hanszen, “where people get out of their cars to see which neighbors they can help whenever there’s a traffic jam around the town square.” Carthaginians are also conservative, politically and socially, which makes it hard to imagine that Bernhardt Tiede II, who moved here in 1985, would end up becoming one of the most popular people in town. Compared with the men who passed their afternoons at Leon Choate’s barbershop just off the square, the portly, mustachioed Bernie was, in the words of one person who knew him, “peachy and sweet.” When he wasn’t in his dark funeral suit, he wore colorful Tommy Hilfiger clothes and drove around town in his Lincoln Continental, smiling broadly at whomever he saw. “He wasn’t bad-looking, and there were numerous girls in the community who would have dated him,” says Don Lipsey, the former owner of Hawthorn, who had hired Bernie. “But he showed no romantic interest in women his age at all. I think some of the men during their coffee shop talks would insinuate that Bernie was a little light in the loafers.”
+
+Despite the questions about Bernie’s personal life, Carthage’s citizens couldn’t help but take a shine to him. Bernie clearly loved the small-town life of East Texas. At First United Methodist he was the tenor soloist in the choir, he taught Sunday school, and sometimes, when the minister was sick or on vacation, he gave the sermon. (“Let me tell you, he was doggone better than the paid preacher,” one elderly member says.) Bernie got involved with the drama and music departments at Panola College, and he became so renowned for his knowledge of Broadway musicals that he was asked to conduct the drama department’s performances of Showboat and Guys and Dolls. He sang with the Shreveport Chamber Singers, a professional singing group just across the state line, and he served on the chamber of commerce’s Christmas decorating committee, giving advice about where the lights and wreaths should be placed around the town square.
+
+Born in Tyler, Bernie spent his earliest years in Kilgore, a 45-minute drive from Carthage, where his father was the chairman of the fine arts department at Kilgore Junior College. His mother died in a car wreck when he was only three, and his father, after remarrying and moving Bernie and his younger sister to Abilene, died after a long illness when Bernie was fifteen. To help support himself and his sister, Bernie took an after-school job at an Abilene funeral home, first doing yard work and then helping out at the funerals. “I really think that because of the loneliness he went through in his childhood, Bernie made it his calling to serve people in times of their own need,” says his sister, a Central Texas social worker who asked not to be identified. “He wasn’t a dour boy. He was popular at high school, and for kicks he’d sneak the hearse on Fridays out of the funeral home and drive a bunch of us around Abilene. But he said a long time ago that he was meant to take care of others—and I think that’s why the funeral business appealed to him.”“He brought a lot of compassion to Carthage,” says Paula Carter, a fellow church member and a counselor at the high school. “He was very quick to shake your hand and ask how you were doing, and if you told him you weren’t doing too well, he would drop everything to talk to you and see what he could do.” He sewed curtains for people who needed them, he helped others with their tax returns, and he began buying so many gifts for his new Carthage friends that, according to Lipsey, “the UPS truck started arriving in Carthage every day with something that Bernie had ordered from a catalog.”
+
+He received an associate’s degree in mortuary science from McNeese State University in Lake Charles, Louisiana, worked at a funeral home in town, and in 1985 came to work in Carthage, living in a small apartment just behind the Hawthorn Funeral Home. “He was probably the most qualified young man I have ever seen,” says Lipsey. “He waited well on the families, he would sing solos behind the screen during the funeral, and he was a darned good embalmer. He had a talent of making the hair of the deceased look really natural.”

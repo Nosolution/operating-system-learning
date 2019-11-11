@@ -4,30 +4,30 @@
 /**
  * Parse entry from bytes
  * @param   entry       bytes storing info of an direntry
- * @return  direntry that parsed info   
+ * @return  ptr to the direntry that parsed info   
  */
-DirEntry& parse_entry(byte *entry)
+DirEntry *parse_entry(byte *entry)
 {
     int idx = 0;
-    DirEntry& res = *new DirEntry;
-    memcpy(res.dirname, entry + deatrofs[idx], deatrofs[idx + 1] - deatrofs[idx]);
+    DirEntry *res = new DirEntry;
+    memcpy(res->dirname, entry + deatrofs[idx], deatrofs[idx + 1] - deatrofs[idx]);
     idx++;
 
-    res.dirattr = *(entry + deatrofs[idx++]);
+    res->dirattr = *(entry + deatrofs[idx++]);
 
-    memcpy(res.reserve, entry + deatrofs[idx], deatrofs[idx + 1] - deatrofs[idx]);
+    memcpy(res->reserve, entry + deatrofs[idx], deatrofs[idx + 1] - deatrofs[idx]);
     idx++;
 
-    res.wrttime = bs2n(entry + deatrofs[idx], deatrofs[idx + 1] - deatrofs[idx]);
+    res->wrttime = bs2n(entry + deatrofs[idx], deatrofs[idx + 1] - deatrofs[idx]);
     idx++;
 
-    res.wrtdate = bs2n(entry + deatrofs[idx], deatrofs[idx + 1] - deatrofs[idx]);
+    res->wrtdate = bs2n(entry + deatrofs[idx], deatrofs[idx + 1] - deatrofs[idx]);
     idx++;
 
-    res.fstclus = bs2n(entry + deatrofs[idx], deatrofs[idx + 1] - deatrofs[idx]);
+    res->fstclus = bs2n(entry + deatrofs[idx], deatrofs[idx + 1] - deatrofs[idx]);
     idx++;
 
-    res.filesize = bs2n(entry + deatrofs[idx], deatrofs[idx + 1] - deatrofs[idx]);
+    res->filesize = bs2n(entry + deatrofs[idx], deatrofs[idx + 1] - deatrofs[idx]);
     idx++;
 
     return res;

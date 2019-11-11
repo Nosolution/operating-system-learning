@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <algorithm>
+#include <iostream>
 
 class DirNode
 {
@@ -10,7 +11,7 @@ public:
     void *entry;
     unsigned int size;
     unsigned int chd_ct;
-    DirNode *children;
+    DirNode **children;
     DirNode *parent;
 
     DirNode();

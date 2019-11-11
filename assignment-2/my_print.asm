@@ -9,41 +9,47 @@ global asm_printcs
     .len            equ $ - color_red
     color_default:  db  1Bh, '[37;0m', 0 ;默认色
     .len            equ $ - color_default
-    color_sign:     db 0 ;颜色标志位，当前为蓝色->0，红色->1
+    color_sign:     db 0 ;颜色标志位，当前为白色->0，红色->1
+    check_msg       db   'checkout',0h      
 
 
     section .text
 asm_prints:
+    
     mov eax, [esp+4]
     mov ebx, [esp+8]
     cmp ebx, 0
     je  default_color
     jmp red_color
 default_color:
-    call set_default
-    jmp end_set_color
+    call sprint
+    jmp end_print
 red_color:
     call set_red
-end_set_color:
     call sprint
+    call set_default
+
+end_print:
+    ; pop eax
+    ; pop eax
+    
     ret
 
 asm_printi:
-    call set_default
+    ; call set_default
     mov eax, [esp+4]
     call iprint
     ret
 
 asm_printcs:
-    call    set_default
+    ; call    set_default
+    
     mov     ecx, [esp+4]
     mov     edx, [esp+8]
     mov     ebx, 1
     mov     eax, 4
     int     80h
     ret
-
-
 
 
 set_red:
@@ -58,7 +64,7 @@ set_red:
     mov edx, color_red.len
     int 80h
 	
-	mov byte[color_sign], 1
+	; mov byte[color_sign], 1
 
     pop edx
     pop ecx
@@ -78,12 +84,19 @@ set_default:
     mov edx, color_default.len
     int 80h
 	
-	mov byte[color_sign], 0
+	; mov byte[color_sign], 0
     pop edx
     pop ecx
     pop ebx
     pop eax
 	ret
+
+check_out:
+    push    eax
+    mov     eax, check_msg
+    call    sprintLF
+    pop     eax
+    ret
 
 
 ;------------------------------------------
@@ -104,7 +117,21 @@ finished:
     pop     ebx
     ret
  
+;------------------------------------------
+; void sprintLF(String message)
+; String printing with line feed function
+sprintLF:
+    call    sprint
  
+    push    eax
+    mov     eax, 0AH
+    push    eax
+    mov     eax, esp
+    call    sprint
+    pop     eax
+    pop     eax
+    ret
+
 ;------------------------------------------
 ; void sprint(String message)
 ; String printing function
@@ -127,7 +154,6 @@ sprint:
     pop     ecx
     pop     edx
     ret
-
 
 ;------------------------------------------
 ; void iprint(Integer number)

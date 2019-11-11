@@ -9,14 +9,14 @@
             "type": "cppdbg",
             "request": "launch",
             // "program": "${fileDirname}/${fileBasenameNoExtension}",
-            "program": "${fileDirname}/main",
+            "program": "${fileDirname}/main",//运行需要使用的文件名参数，这里是因为我在Makefile中生成的可执行文件为main
             "args": [],
             "stopAtEntry": false,
             // "cwd": "${workspaceFolder}",
             "cwd": "${fileDirname}",
             "environment": [],
             "externalConsole": false,
-            "MIMode": "gdb",// 指定连接的调试器，可以为gdb或lldb。但我没试过lldb
+            "MIMode": "gdb",// 指定连接的调试器，可以为gdb或lldb。
             "setupCommands": [
                 {   // 模板自带，好像可以更好地显示STL容器的内容，具体作用自行Google
                     "description": "Enable pretty-printing for gdb",
@@ -25,7 +25,7 @@
                 }
             ],
             // "preLaunchTask": "build",// 调试会话开始前执行的任务，一般为编译程序。与tasks.json的label相对应
-            "preLaunchTask": "make",// 调试会话开始前执行的任务，一般为编译程序。与tasks.json的label相对应
+            "preLaunchTask": "make",//多文件编译与链接，需要Makefile
             "miDebuggerPath": "/usr/bin/gdb"// 调试器路径，Windows下后缀不能省略，Linux下则不要
         }
     ]
