@@ -19,7 +19,7 @@ Fat12Header* parse_header(const byte *header)
     res->BPB_SecPerClus = bs2n(header + hatrofs[idx], hatrofs[idx + 1] - hatrofs[idx]);
     idx++;
 
-    res->BPB_SecPerClus = bs2n(header + hatrofs[idx], hatrofs[idx + 1] - hatrofs[idx]);
+    res->BPB_RsvdSecCnt = bs2n(header + hatrofs[idx], hatrofs[idx + 1] - hatrofs[idx]);
     idx++;
 
     res->BPB_NumFATs = bs2n(header + hatrofs[idx], hatrofs[idx + 1] - hatrofs[idx]);

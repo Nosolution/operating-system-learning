@@ -23,14 +23,23 @@
 
 using namespace std;
 
-const char *no_such_file = "No such a file.\n";
-const char *no_such_dir = "No such a directory.\n";
-const char *not_file = "Not a file.\n";
-const char *bye = "Bye\n";
-const char *dir_end = ":\n";
-const char *lf = "\n";
-const char *space = " ";
-const char *slash = "/";
+const char *NO_SUCH_FILE = "No such a file.\n";
+const char *NO_SUCH_DIR = "No such a directory.\n";
+const char *NOT_FILE = "Not a file.\n";
+const char *NOT_DIR = "Not a directory.\n";
+const char *BYE = "Bye\n";
+const char *DIR_END = ":\n";
+const char *LF = "\n";
+const char *SPACE = " ";
+const char *SLASH = "/";
+
+unsigned int SECTOR_SIZE;
+unsigned int CLUSTER_SIZE;
+unsigned int FAT_SIZE;
+unsigned int FAT_ST;
+unsigned int ROOT_ENT_SEC_ST;
+unsigned int ROOT_ENT_SEC_CT;
+unsigned int DATA_SEC_ST;
 
 fatnum *get_fatlist(char *bytes);
 DirNode *read_meta_data(DirNode *node, const fatnum *fatlist, ifstream &fs);
@@ -62,18 +71,28 @@ int main()
     }
     //read header
     char header_bytes[_BLOCK_SIZE];
-    img.seekg(_BLOCK_SIZE * _BPB_ST, ios::beg);
+    img.seekg(0, ios::beg);
     img.read(header_bytes, _BLOCK_SIZE);
     Fat12Header *header = parse_header((const byte *)header_bytes);
+
+    //set global variables
+    SECTOR_SIZE = header->BPB_BytsPerSec;
+    CLUSTER_SIZE = header->BPB_SecPerClus * SECTOR_SIZE;
+    FAT_SIZE = header->BPB_FATSz16 * SECTOR_SIZE;
+    FAT_ST = SECTOR_SIZE * header->BPB_RsvdSecCnt;
+    ROOT_ENT_SEC_ST = header->BPB_RsvdSecCnt + header->BPB_NumFATs * header->BPB_FATSz16;
+    ROOT_ENT_SEC_CT = (header->BPB_DirEntCnt * _DIR_ITEM_SIZE + SECTOR_SIZE - 1) / SECTOR_SIZE;
+    DATA_SEC_ST = ROOT_ENT_SEC_ST + ROOT_ENT_SEC_CT;
+
     //read fatlist
-    char fat_bytes[_BLOCK_SIZE * 9];
-    img.seekg(_BLOCK_SIZE * _FAT_ST, ios::beg);
-    img.read(fat_bytes, _BLOCK_SIZE * 9);
+    char fat_bytes[FAT_SIZE];
+    img.seekg(FAT_ST, ios::beg);
+    img.read(fat_bytes, FAT_SIZE);
     fatnum *fatlist = get_fatlist(fat_bytes);
     //root name is under determination
     DirNode *root = new DirNode{"", true, 0};
     char entry_buf[_DIR_ITEM_SIZE];
-    img.seekg(_BLOCK_SIZE * _ROOT_ENTRY_ST, ios::beg);
+    img.seekg(SECTOR_SIZE * ROOT_ENT_SEC_ST, ios::beg);
     //because data of files/subdirs in root are not stored in data area, need to manually call function
     for (unsigned int i = 0; i < header->BPB_DirEntCnt; i++)
     {
@@ -97,7 +116,7 @@ int main()
         {
             if (cmd.compare(_EXIT) == 0)
             {
-                prints(bye, _WHITE_COLOR);
+                prints(BYE, _WHITE_COLOR);
                 break;
             }
             else if (cmd.compare(_LS) == 0)
@@ -105,8 +124,11 @@ int main()
                 DirNode *cur = root->find(param.c_str());
                 if (cur == nullptr)
                 {
-                    prints(no_such_dir, _WHITE_COLOR);
-                    continue;
+                    prints(NO_SUCH_DIR, _WHITE_COLOR);
+                }
+                else if(!cur->is_dir)
+                {
+                    prints(NOT_DIR, _WHITE_COLOR);
                 }
                 else
                 {
@@ -120,7 +142,7 @@ int main()
                     { //print by bfs
                         node = node_q.front();
                         print_func(node);
-                        prints(lf, _WHITE_COLOR);
+                        prints(LF, _WHITE_COLOR);
                         for (unsigned int i = 0; i < node->chd_ct; i++)
                         {
                             tmp = node->children[i];
@@ -137,11 +159,11 @@ int main()
                 DirNode *node = root->find(param.c_str());
                 if (node == nullptr)
                 {
-                    prints(no_such_file, _WHITE_COLOR);
+                    prints(NO_SUCH_FILE, _WHITE_COLOR);
                 }
                 else if (node->is_dir)
                 {
-                    prints(not_file, _WHITE_COLOR);
+                    prints(NOT_FILE, _WHITE_COLOR);
                 }
                 else
                 {
@@ -157,7 +179,7 @@ int main()
         {
             warn();
         }
-        prints(lf, _WHITE_COLOR);
+        prints(LF, _WHITE_COLOR);
     }
     img.close();
     return 0;
@@ -212,17 +234,17 @@ byte *read_data(const number fstclus, const fatnum *fatlist, ifstream &fs, numbe
 {
     size = 0;
     for (number i = fstclus; i < _FAT_END; i = fatlist[i])
-        size += _BLOCK_SIZE;
+        size += CLUSTER_SIZE;
 
     byte *data = new byte[size];
-    char blc_buf[_BLOCK_SIZE];
+    char blc_buf[CLUSTER_SIZE];
     int count = 0;
     int pos = fs.tellg(); //save the position of current stream
     for (number i = fstclus; i < _FAT_END; i = fatlist[i], count++)
     {
-        fs.seekg(_BLOCK_SIZE * (_DATA_ST + fat_bias(i)), ios::beg);
-        fs.read(blc_buf, _BLOCK_SIZE);
-        memcpy(data + count * _BLOCK_SIZE, blc_buf, _BLOCK_SIZE);
+        fs.seekg(CLUSTER_SIZE * (DATA_SEC_ST + fat_bias(i)), ios::beg);
+        fs.read(blc_buf, CLUSTER_SIZE);
+        memcpy(data + count * CLUSTER_SIZE, blc_buf, CLUSTER_SIZE);
     }
     fs.seekg(pos);
     return data;
@@ -268,10 +290,9 @@ DirNode *build_node(const DirEntry *entry)
  */
 fatnum *get_fatlist(char *bytes)
 {
-    int ft_size = _BLOCK_SIZE * 9;
-    fatnum *res = new fatnum[ft_size * 2 / 3];
+    fatnum *res = new fatnum[FAT_SIZE * 2 / 3];
 
-    for (int i = 0, j = 0; i < ft_size; i += 3, j += 2)
+    for (unsigned int i = 0, j = 0; i < FAT_SIZE; i += 3, j += 2)
     {
         res[j] = ((bytes[i + 1] << 8) | bytes[i]) & 0x0FFF;
         res[j + 1] = ((bytes[i + 2] << 4) | ((bytes[i + 1] >> 4) & 0x0F)) & 0x0FFF;
@@ -417,7 +438,7 @@ const char *next_word(const char *st, int &len, string &word)
 void plain_print(DirNode *node)
 {
     print_abs_path(node);
-    prints(dir_end, _WHITE_COLOR);
+    prints(DIR_END, _WHITE_COLOR);
     DirNode *child;
     for (unsigned int i = 0; i < node->chd_ct; i++)
     {
@@ -426,11 +447,11 @@ void plain_print(DirNode *node)
         prints(child->name, child->is_dir ? _RED_COLOR : _WHITE_COLOR);
         if (i < (node->chd_ct - 1))
         {
-            prints(space, _WHITE_COLOR);
-            prints(space, _WHITE_COLOR);
+            prints(SPACE, _WHITE_COLOR);
+            prints(SPACE, _WHITE_COLOR);
         }
     }
-    prints(lf, _WHITE_COLOR);
+    prints(LF, _WHITE_COLOR);
 };
 
 /**
@@ -440,11 +461,11 @@ void plain_print(DirNode *node)
 void detailed_print(DirNode *node)
 {
     print_abs_path(node);
-    printcs(space, 1);
+    printcs(SPACE, 1);
     printi(node->count_subdir());
-    printcs(space, 1);
+    printcs(SPACE, 1);
     printi(node->count_subfile());
-    printcs(dir_end, 2);
+    printcs(DIR_END, 2);
 
     DirNode *child;
     for (unsigned int i = 0; i < node->chd_ct; i++)
@@ -455,18 +476,18 @@ void detailed_print(DirNode *node)
         {
             if (child->is_dir)
             {
-                prints(space, _WHITE_COLOR);
+                prints(SPACE, _WHITE_COLOR);
                 printi(child->count_subdir());
-                prints(space, _WHITE_COLOR);
+                prints(SPACE, _WHITE_COLOR);
                 printi(child->count_subfile());
             }
             else
             {
-                prints(space, _WHITE_COLOR);
+                prints(SPACE, _WHITE_COLOR);
                 printi(child->size);
             }
         }
-        prints(lf, _WHITE_COLOR);
+        prints(LF, _WHITE_COLOR);
     }
 };
 
@@ -481,16 +502,16 @@ void print_abs_path(DirNode *node)
     stack<DirNode *> node_stk;
     DirNode *tmp = node;
     while (tmp != nullptr)
-    {   //find parents and record the node sequence
+    { //find parents and record the node sequence
         node_stk.push(tmp);
         tmp = tmp->parent;
     }
     while (!node_stk.empty())
-    {  
+    {
         tmp = node_stk.top();
         node_stk.pop();
         prints(tmp->name, _WHITE_COLOR);
-        prints(slash, _WHITE_COLOR);
+        prints(SLASH, _WHITE_COLOR);
     }
 };
 

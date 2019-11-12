@@ -6,7 +6,7 @@ objects = main.o dirnode.o direntry.o fat12header.o commons.o print.o my_print.o
 target = main
 
 $(target): $(objects)
-	$(CXX)  -m32 -g $(objects) -o $(target) 
+	$(CXX) -m32 -g $(objects) -o $(target) 
 
 
 # %.o: %.cpp
