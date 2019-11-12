@@ -1,3 +1,5 @@
+; 因为不会用gdb来debug汇编语言，只能自己用print作为断点来debug(滑稽)
+
 check_out:
     push    eax
     mov     eax, check_msg
