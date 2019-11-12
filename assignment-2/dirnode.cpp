@@ -70,7 +70,7 @@ DirNode *DirNode::find(const char *path)
             for (unsigned int i = 0; i < chd_ct; i++)
             {
                 DirNode *child = children[i];
-                if (std::strcmp(child->name, ".") == 0 || std::strcmp(child->name, "..") == 0)
+                if (std::strcmp(child->name, _CUR_DIRNAME) == 0 || std::strcmp(child->name, _PARENT_DIRNAME) == 0)
                     continue; //skip the parent dir and current dir
 
                 res = child->find(ed + 1);
@@ -95,7 +95,7 @@ int DirNode::count_subdir()
     for (unsigned int i = 0; i < chd_ct; i++)
     {
         child = children[i];
-        if (strcmp(child->name, ".") == 0 || strcmp(child->name, "..") == 0)
+        if (strcmp(child->name, _CUR_DIRNAME) == 0 || strcmp(child->name, _PARENT_DIRNAME) == 0)
             continue;
         if (child->is_dir)
             r++;
@@ -116,7 +116,7 @@ int DirNode::count_subfile()
     for (unsigned int i = 0; i < chd_ct; i++)
     {
         child = children[i];
-        if (strcmp(child->name, ".") == 0 || strcmp(child->name, "..") == 0)
+        if (strcmp(child->name, _CUR_DIRNAME) == 0 || strcmp(child->name, _PARENT_DIRNAME) == 0)
             continue;
         if (!child->is_dir)
             r++;

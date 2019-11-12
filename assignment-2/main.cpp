@@ -10,6 +10,7 @@
 #define _LS "ls"
 #define _CAT "cat"
 #define _EXIT "exit"
+
 #define _LOAD_SUCCESS 0
 #define _LOAD_FAILURE 1
 #define _PARSE_SUCCESS 2
@@ -123,7 +124,7 @@ int main()
                         for (unsigned int i = 0; i < node->chd_ct; i++)
                         {
                             tmp = node->children[i];
-                            if (strcmp(tmp->name, ".") == 0 || strcmp(tmp->name, "..") == 0 || !tmp->is_dir)
+                            if (strcmp(tmp->name, _CUR_DIRNAME) == 0 || strcmp(tmp->name, _PARENT_DIRNAME) == 0 || !tmp->is_dir)
                                 continue;
                             node_q.push(tmp);
                         }
@@ -171,7 +172,7 @@ int main()
  */
 DirNode *read_meta_data(DirNode *node, const fatnum *fatlist, ifstream &fs)
 {
-    if (node->is_dir && strcmp(node->name, ".") != 0 && strcmp(node->name, "..") != 0)
+    if (node->is_dir && strcmp(node->name, _CUR_DIRNAME) != 0 && strcmp(node->name, _PARENT_DIRNAME) != 0)
     {
         DirEntry *entry = (DirEntry *)node->entry;
         number size = 0;
@@ -450,7 +451,7 @@ void detailed_print(DirNode *node)
     {
         child = node->children[i];
         prints(child->name, child->is_dir ? _RED_COLOR : _WHITE_COLOR);
-        if (strcmp(child->name, ".") != 0 && strcmp(child->name, "..") != 0)
+        if (strcmp(child->name, _CUR_DIRNAME) != 0 && strcmp(child->name, _PARENT_DIRNAME) != 0)
         {
             if (child->is_dir)
             {

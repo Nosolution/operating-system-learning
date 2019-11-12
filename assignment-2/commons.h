@@ -11,5 +11,7 @@ typedef unsigned int number;
 #define _DATA_ST 33
 #define fat_bias(x) x - 2
 #define _FAT_END 0xFF7
+#define _CUR_DIRNAME "." 
+#define _PARENT_DIRNAME ".." 
 
 number bs2n(const byte *bytes, int n);
