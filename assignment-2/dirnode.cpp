@@ -24,6 +24,11 @@ DirNode::DirNode(const char *nm, bool id, unsigned int sz)
     children = nullptr;
 };
 
+/**
+ * Add a child to current node
+ * @param   node    the node will add a child
+ * @return  node itself
+ */
 DirNode &DirNode::add_child(DirNode *node)
 {
     if (chd_ct == 0)
@@ -40,6 +45,11 @@ DirNode &DirNode::add_child(DirNode *node)
     return *this;
 };
 
+/**
+ * Find the end node in current tree by given path
+ * @param   path    the directory path(relative to current node)
+ * @return  the found end node of nullptr
+ */
 DirNode *DirNode::find(const char *path)
 {
     const char *ed = std::find(path, path + strlen(path), '/');
@@ -72,6 +82,10 @@ DirNode *DirNode::find(const char *path)
     }
 };
 
+/**
+ * Count the number of children which are directories
+ * @return  number of directory children
+ */
 int DirNode::count_subdir()
 {
     if (!this->is_dir)
@@ -88,6 +102,11 @@ int DirNode::count_subdir()
     }
     return r;
 };
+
+/**
+ * Count the number of children which are files
+ * @return  number of file children
+ */
 int DirNode::count_subfile()
 {
     if (!this->is_dir)

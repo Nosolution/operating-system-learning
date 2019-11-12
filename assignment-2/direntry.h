@@ -12,8 +12,10 @@ struct DirEntry
 };
 //abstolute offset of each attr in bytes
 const int deatrofs[] = {0, 11, 12, 22, 24, 26, 28, 32};
+//count of attrs
 const int de_attr_ct = 7;
-const byte READ_ONLY = 0x01; //entry attrs
+//entry attrs
+const byte READ_ONLY = 0x01; 
 const byte HIDDEN = 0x02;
 const byte SYSTEM = 0x04;
 const byte VOLUME_ID = 0x08;

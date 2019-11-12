@@ -9,8 +9,8 @@ public:
     const char *name;
     bool is_dir;
     void *entry;
-    unsigned int size;
-    unsigned int chd_ct;
+    unsigned int size;      //file size, zero if is dir
+    unsigned int chd_ct;    
     DirNode **children;
     DirNode *parent;
 
@@ -23,16 +23,4 @@ public:
 
     int count_subdir();
     int count_subfile();
-
-    static DirNode parent_node(void)
-    {
-        DirNode node{".", true, 0};
-        return node;
-    };
-
-    static DirNode cur_node(void)
-    {
-        DirNode node{"..", true, 0};
-        return node;
-    };
 };

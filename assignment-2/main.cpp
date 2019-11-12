@@ -89,7 +89,7 @@ int main()
     string line, cmd, opt, param;
     int code = 0;
     while (true)
-    {   //loop until quit command are input
+    { //loop until quit command are input
         getline(cin, line);
         code = parse_cmd(line, cmd, opt, param);
         if (code == _PARSE_SUCCESS)
@@ -449,20 +449,21 @@ void detailed_print(DirNode *node)
     for (unsigned int i = 0; i < node->chd_ct; i++)
     {
         child = node->children[i];
-        if (strcmp(child->name, ".") == 0 || strcmp(child->name, "..") == 0)
-            continue;
         prints(child->name, child->is_dir ? _RED_COLOR : _WHITE_COLOR);
-        if (child->is_dir)
+        if (strcmp(child->name, ".") != 0 && strcmp(child->name, "..") != 0)
         {
-            prints(space, _WHITE_COLOR);
-            printi(child->count_subdir());
-            prints(space, _WHITE_COLOR);
-            printi(child->count_subfile());
-        }
-        else
-        {
-            prints(space, _WHITE_COLOR);
-            printi(child->size);
+            if (child->is_dir)
+            {
+                prints(space, _WHITE_COLOR);
+                printi(child->count_subdir());
+                prints(space, _WHITE_COLOR);
+                printi(child->count_subfile());
+            }
+            else
+            {
+                prints(space, _WHITE_COLOR);
+                printi(child->size);
+            }
         }
         prints(lf, _WHITE_COLOR);
     }
@@ -479,12 +480,12 @@ void print_abs_path(DirNode *node)
     stack<DirNode *> node_stk;
     DirNode *tmp = node;
     while (tmp != nullptr)
-    {
+    {   //find parents and record the node sequence
         node_stk.push(tmp);
         tmp = tmp->parent;
     }
     while (!node_stk.empty())
-    {
+    {  
         tmp = node_stk.top();
         node_stk.pop();
         prints(tmp->name, _WHITE_COLOR);
