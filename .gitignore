@@ -2,3 +2,4 @@ assignment-2/main
 **/*.o
 assignment-2/test.cpp
 assignment-2/test
+assignment-2/asm_test/
