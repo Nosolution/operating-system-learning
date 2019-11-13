@@ -62,7 +62,7 @@ void warn();
 int main()
 {
     ifstream img;
-    img.open("data.img", ios::binary);
+    img.open("a.img", ios::binary);
     if (!img.is_open())
     {
         char open_failure_msg[25] = "Cannot open the image.\n";
