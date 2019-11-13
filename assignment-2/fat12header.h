@@ -8,7 +8,7 @@ struct Fat12Header
     number BPB_RsvdSecCnt;  //Boot占用的扇区数, 默认为1
     number BPB_NumFATs;     //FAT表的记录数, 默认为2
     number BPB_DirEntCnt;   //最大根目录文件数
-    number BPB_TotSec16;    //逻辑扇区总数，The total sectors in the logical volume. If this value is 0, it means there are more than 65535 sectors in the volume, and the actual count is stored in the Large Sector Count entry at 0x20.
+    number BPB_TotSec16;    //逻辑扇区总数，如果值是0，说明磁盘中有超过2^16-1个扇区，并且真实值保存在 Large Sector Count字段，在0x20处
     byte BPB_Media;         //媒体描述符
     number BPB_FATSz16;     //每个FAT占用扇区数
     number BPB_SecPerTrk;   //每个磁道扇区数
