@@ -1,6 +1,7 @@
-assignment-2/main
+/.vscode/
 **/*.o
 assignment-2/test.cpp
 assignment-2/test
+assignment-2/main
 assignment-2/asm_test/
-/.vscode/
+assignment-3/a/
