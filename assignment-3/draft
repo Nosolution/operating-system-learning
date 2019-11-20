@@ -1,0 +1,142 @@
+const int WIDTH
+const int HIGH
+
+char* char_buffer
+int* pos_buffer
+int buf_size
+char* query_key
+int key_len
+int idx
+int find_flag
+int show_flag
+
+int main()
+{
+	char c;
+	while(1)
+	{
+		c = keyboard_read();
+		if(find_flag&& show_flag && c!=ESC)
+			continue;
+		if(find_flag)
+		{
+			case ESC:
+				reset_idx();
+				sti();
+				find_flag=false;
+				break;
+			case \b:
+				backspace();
+                append(query_key, c, key_len);
+				key_len++;
+                break;
+            case \n:
+				find_word(key);
+				show_flag=true;
+				break;
+			case char:
+				append(key, c, key_len);
+				key++;
+				print_color(c, BLUE);
+				break;
+            case cancel:
+                undo(query_key, key_len);
+                key_len--;
+
+			default:
+				break;
+		}
+		else
+		{
+			switch(c)
+			{
+				case ESC:
+					cli();
+					find_flag=true;
+					break;
+                 case \b:
+                    append(char_buffer, c, buf_size);
+					buf_size++;
+                    backspace();
+                    break;
+				case \n:
+					append(char_buffer, c, buf_size);
+					buf_size++;
+					return_idx();
+					break;
+				case \t:
+					append(char_buffer, c, buf_size);
+					buf_size++;
+					print 4 spaces
+					break;
+				case char:
+					append(char_buffer, c, buf_size);
+					buf_size++;
+					print_color(c, WHITE);
+					break;
+				default:
+					break;
+			}
+		}
+		
+	}
+}
+
+append(p, c, size)
+{
+    p[size]  = c;
+}
+
+
+void print_color(char c, int color)
+{
+    ...
+}
+void return_idx()
+{
+    //calculate idx by return key.
+}
+
+void replace(char c, int color)
+{
+    //replace the byte pointed by idx by c in specified color.
+}
+
+void backspace()
+{
+    replace(space, WHITE);
+    int s = forward_steps
+}
+
+cli()
+{
+    //close interrupt
+}
+
+sti()
+{
+    //start interrupt
+}
+
+void clear()
+{
+    //clear screen on time interrupt occurring
+}
+
+int backward_steps()
+{
+    //calc how many steps idx had taken before printed current char 
+}
+
+int forward_steps()
+{
+    //calc how many steps idx had taken before printed current char
+}
+
+void undo(char *p, int size)
+{
+    if(size==0)
+        return;
+    int b_count=0;
+    int 
+}
