@@ -144,7 +144,7 @@ int forward_steps()
     //calc how many steps idx had taken before printed current char
 }
 
-void query_and_highlight(TTY* p_tty)
+PRIVATE void query_and_highlight(TTY* p_tty)
 {
 	u32* st_array[MAX_CACHE_SIZE];
 	u32* ed_array[MAX_CACHE_SIZE];

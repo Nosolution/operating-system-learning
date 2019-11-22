@@ -36,6 +36,7 @@ PUBLIC void init_clock();
 
 /* keyboard.c */
 PUBLIC void init_keyboard();
+PUBLIC u32 keyboard_read();
 
 /* tty.c */
 PUBLIC void task_tty();
@@ -43,7 +44,10 @@ PUBLIC void in_process(TTY* p_tty, u32 key);
 
 /* console.c */
 PUBLIC void out_char(CONSOLE* p_con, char ch);
+PUBLIC void out_colorful_char(CONSOLE* p_con, char ch,char color);
+PUBLIC void set_color(CONSOLE *p_con, unsigned int st_cursor, unsigned int ed_cursor, char color);
 PUBLIC void scroll_screen(CONSOLE* p_con, int direction);
+PUBLIC void backward_clean(CONSOLE *p_con, unsigned int count);
 
 /* printf.c */
 PUBLIC  int     printf(const char *fmt, ...);

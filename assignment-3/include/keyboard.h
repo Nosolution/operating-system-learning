@@ -114,6 +114,7 @@
 #define PAD_INS		PAD_0			/* Ins		*/
 #define PAD_MID		PAD_5			/* Middle key	*/
 #define PAD_DEL		PAD_DOT			/* Del		*/
+#define NONE 		0 
 
 
 /************************************************************************/

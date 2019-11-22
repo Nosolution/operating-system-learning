@@ -14,6 +14,7 @@
 #define MAX_KEY_LEN 256
 #define FIND_MODE 1
 #define SHOW_MODE 2
+#define NONE 0
 
 struct s_console;
 
@@ -31,6 +32,12 @@ typedef struct s_tty
 	u32 query_key[MAX_KEY_LEN];
 	int key_len;
 	unsigned int flag;
+
+	u32 st_array[MAX_CC_SIZE];
+	u32 ed_array[MAX_CC_SIZE];
+
+	int st_ticks;
+	int ticks_limit;
 
 	struct s_console *	p_console;
 }TTY;
