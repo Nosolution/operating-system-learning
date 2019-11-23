@@ -127,7 +127,7 @@ PUBLIC void backward_clean(CONSOLE *p_con, unsigned int count)
 
 	unsigned int i = 0;
 
-	while (p_con->cursor > p_con->original_addr && i <= count)
+	while (p_con->cursor > p_con->original_addr && i < count)
 	{
 		p_con->cursor--;
 		i++;
@@ -203,7 +203,8 @@ PUBLIC void set_color(CONSOLE *p_con, unsigned int st_cursor, unsigned int ed_cu
 
 	while (ct + st_cursor < ed_cursor)
 	{
-		*(vmem - 1) = color;
+		*(vmem + 1) = color;
+		ct++;
 		vmem += 2;
 	}
 

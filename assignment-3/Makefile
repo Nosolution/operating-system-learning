@@ -32,7 +32,7 @@ OBJS		= kernel/kernel.o kernel/syscall.o kernel/start.o kernel/main.o\
 DASMOUTPUT	= kernel.bin.asm
 
 # All Phony Targets
-.PHONY : everything final image clean realclean disasm all buildimg
+.PHONY : everything final image clean realclean disasm all buildimg run
 
 # Default starting position
 nop :
@@ -60,6 +60,9 @@ buildimg :
 	sudo cp -fv boot/loader.bin /mnt/floppy/
 	sudo cp -fv kernel.bin /mnt/floppy
 	sudo umount /mnt/floppy
+
+run : image
+	bochs -q -rc debug.rc
 
 boot/boot.bin : boot/boot.asm boot/include/load.inc boot/include/fat12hdr.inc
 	$(ASM) $(ASMBFLAGS) -o $@ $<

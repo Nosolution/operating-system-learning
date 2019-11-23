@@ -26,8 +26,9 @@ PRIVATE void put_key(TTY *p_tty, u32 key);
 PRIVATE void query(TTY *p_tty);
 PRIVATE void color_keyword(TTY *p_tty, char color);
 PRIVATE u32 find_last_char(TTY *p_tty);
-PRIVATE void match(u32 *str, unsigned int st, unsigned int ed, u32 *key, unsigned int key_len, u32 *st_array, u32 *ed_array);
+PRIVATE void match(u32 *str, unsigned int size, u32 *key, unsigned int key_len, u32 *st_array, u32 *ed_array);
 PRIVATE u32 *former_char(u32 *cur, u32 *head);
+PRIVATE void append_char(u32 *p, u32 c, int size);
 PRIVATE void cache_cursor(TTY *p_tty);
 PRIVATE void reset(TTY *p_tty);
 
@@ -43,12 +44,15 @@ PUBLIC void task_tty()
 	for (p_tty = TTY_FIRST; p_tty < TTY_END; p_tty++)
 	{
 		init_tty(p_tty);
+		reset(p_tty);
 	}
 	select_console(0);
 	while (1)
 	{
 		for (p_tty = TTY_FIRST; p_tty < TTY_END; p_tty++)
 		{
+
+			// timing
 			if (get_ticks() - p_tty->st_ticks > p_tty->ticks_limit && !(p_tty->flag & FIND_MODE))
 			{
 				reset(p_tty);
@@ -56,7 +60,7 @@ PUBLIC void task_tty()
 			else
 			{
 				u32 key = tty_do_read(p_tty);
-				in_process(p_tty, key);
+				process(p_tty, key);
 			}
 		}
 	}
@@ -73,7 +77,7 @@ PRIVATE void init_tty(TTY *p_tty)
 	p_tty->key_len = 0;
 	p_tty->flag = 0;
 	p_tty->st_ticks = get_ticks();
-	p_tty->ticks_limit = 20000 * HZ / 1000;
+	p_tty->ticks_limit = 200000 * HZ / 1000;
 
 	init_screen(p_tty);
 }
@@ -81,32 +85,31 @@ PRIVATE void init_tty(TTY *p_tty)
 /*======================================================================*
 				in_process
  *======================================================================*/
-PUBLIC void in_process(TTY *p_tty, u32 key)
+PUBLIC void process(TTY *p_tty, u32 key)
 {
-	char output[2] = {'\0', '\0'};
-
+	// char output[2] = {'\0', '\0'};
 	if (key == NONE)
 		return;
-
 	if ((p_tty->flag & SHOW_MODE) && (key != ESC))
+	{
 		return;
+	}
 
 	else if ((p_tty->flag & SHOW_MODE) && (key == ESC))
 	{
 		backward_clean(p_tty->p_console, p_tty->key_len);
 		color_keyword(p_tty, DEFAULT_CHAR_COLOR);
 		p_tty->key_len = 0;
-		p_tty->flag &= !(FIND_MODE | SHOW_MODE);
+		p_tty->flag &= (!(FIND_MODE | SHOW_MODE));
 	}
-	else if (p_tty->flag & FIND_MODE)
+	else if (p_tty->flag & FIND_MODE) //in find_mode
 	{
 
 		if (!(key & FLAG_EXT))
 		{
-			append(p_tty->query_key, key, p_tty->key_len);
-			p_tty->key_len++;
 			out_colorful_char(p_tty->p_console, key, BLUE);
-			// put_key(p_tty, key);
+			append_char(p_tty->query_key, key, p_tty->key_len);
+			p_tty->key_len++;
 		}
 		else
 		{
@@ -132,14 +135,41 @@ PUBLIC void in_process(TTY *p_tty, u32 key)
 			}
 		}
 	}
-	else
+	else //not in find_mode
 	{
 		if (!(key & FLAG_EXT))
 		{
-			append(p_tty->char_cache, key, p_tty->cache_size);
-			p_tty->cache_size++;
-			out_char(p_tty->p_console, key);
-			cache_cursor(p_tty);
+			//undo
+			if (((key & FLAG_CTRL_L) || (key & FLAG_CTRL_R)) && ((key & MASK_RAW) == 'z' || (key & MASK_RAW) == 'Z'))
+			{
+				if (p_tty->cache_size > 0)
+				{
+					p_tty->cache_size--;
+					if (p_tty->char_cache[p_tty->cache_size] != '\b')
+					{
+						int steps = p_tty->cursor_cache[p_tty->cache_size] - p_tty->cursor_cache[p_tty->cache_size - 1];
+						backward_clean(p_tty->p_console, steps);
+					}
+					else
+					{
+						u32 c = find_last_char(p_tty);
+						out_char(p_tty->p_console, c);
+					}
+				}
+			}
+			//normal char
+			else
+			{
+				out_char(p_tty->p_console, key);
+				append_char(p_tty->char_cache, key, p_tty->cache_size);
+				cache_cursor(p_tty);
+				p_tty->cache_size++;
+
+				// u8 s[1];
+				// s[0] = p_tty->cursor_cache[p_tty->cache_size - 1] + '0';
+				// tty_write(p_tty, s, 1);
+				// p_tty->p_console->cursor--;
+			}
 		}
 		else
 		{
@@ -147,23 +177,23 @@ PUBLIC void in_process(TTY *p_tty, u32 key)
 			switch (raw_code)
 			{
 			case ESC:
-				p_tty->flag |= !FIND_MODE;
+				p_tty->flag |= FIND_MODE;
 				break;
 			case BACKSPACE:
-				append(p_tty->char_cache, '\b', p_tty->cache_size);
 				out_char(p_tty->p_console, '\b');
+				append_char(p_tty->char_cache, '\b', p_tty->cache_size);
 				cache_cursor(p_tty);
 				p_tty->cache_size++;
 				break;
 			case ENTER:
-				append(p_tty->char_cache, '\n', p_tty->cache_size);
 				out_char(p_tty->p_console, '\n');
+				append_char(p_tty->char_cache, '\n', p_tty->cache_size);
 				cache_cursor(p_tty);
 				p_tty->cache_size++;
 				break;
 			case TAB:
-				append(p_tty->char_cache, '\t', p_tty->cache_size);
 				out_char(p_tty->p_console, '\t');
+				append_char(p_tty->char_cache, '\t', p_tty->cache_size);
 				cache_cursor(p_tty);
 				p_tty->cache_size++;
 			default:
@@ -174,15 +204,23 @@ PUBLIC void in_process(TTY *p_tty, u32 key)
 }
 PRIVATE void query(TTY *p_tty)
 {
-	match(p_tty->char_cache, 0, p_tty->cache_size, p_tty->query_key, p_tty->key_len, p_tty->st_array, p_tty->ed_array);
+	match(p_tty->char_cache, p_tty->cache_size, p_tty->query_key, p_tty->key_len, p_tty->st_array, p_tty->ed_array);
 }
 
 PRIVATE void color_keyword(TTY *p_tty, char color)
 {
-	unsigned i = 0;
-	while (p_tty->st_array[i] != -1)
+	unsigned int i = 0;
+	while (i < MAX_CC_SIZE && p_tty->ed_array[i] != 0xFFFFFFFF)
 	{
-		set_color(p_tty->p_console, p_tty->cursor_cache[p_tty->st_array[i]], p_tty->cursor_cache[p_tty->ed_array[i]], color);
+		// u8 s[3];
+		// // s[0] = p_tty->cursor_cache[p_tty->st_array[i]] + '0';
+		// s[0] = p_tty->st_array[i] + '0';
+		// s[1] = ' ';
+		// s[2] = p_tty->ed_array[i] + '0';
+		// tty_write(p_tty, s, 3);
+		unsigned int st = (p_tty->st_array[i] == HEAD ? 0 : p_tty->cursor_cache[p_tty->st_array[i]]);
+		unsigned int ed = p_tty->cursor_cache[p_tty->ed_array[i]];
+		set_color(p_tty->p_console, st, ed, color);
 		i++;
 	}
 }
@@ -193,19 +231,19 @@ PRIVATE u32 find_last_char(TTY *p_tty)
 	return last_char == NULL ? 0 : *last_char;
 }
 
-PRIVATE void match(u32 *str, unsigned int st, unsigned int ed, u32 *key, unsigned int key_len, u32 *st_array, u32 *ed_array)
+PRIVATE void match(u32 *str, unsigned int size, u32 *key, unsigned int key_len, u32 *st_array, u32 *ed_array)
 {
-	memset(st_array, -1, MAX_CC_SIZE);
-	memset(ed_array, -1, MAX_CC_SIZE);
-
-	u32 *cur_idx = former_char(str + ed, str);
+	memset(st_array, 0xFF, 4 * MAX_CC_SIZE);
+	memset(ed_array, 0xFF, 4 * MAX_CC_SIZE);
+	u32 *cur_idx = former_char(str + size, str);
 	int res_len = 0;
 
 	while (cur_idx != NULL)
 	{
+
 		int i = key_len - 1;
 		u32 *ed_idx = cur_idx;
-		while (i >= 0 && cur_idx != NULL)
+		while (i >= 0 && (cur_idx != NULL))
 		{
 			if (*cur_idx != key[i])
 				break;
@@ -214,10 +252,23 @@ PRIVATE void match(u32 *str, unsigned int st, unsigned int ed, u32 *key, unsigne
 		}
 		if (i < 0)
 		{
-			cur_idx = former_char(cur_idx, str);
-			st_array[res_len] = cur_idx == NULL ? 0 : (cur_idx - str);
+			// cur_idx = (cur_idx == NULL ? HEAD : former_char(cur_idx, str)); //idx before printing
+			// if (cur_idx == HEAD)
+			// 	st_array[res_len] = HEAD;
+			// else if (cur_idx == NULL)
+			// 	st_array[res_len] = 0;
+			// else
+			// 	st_array[res_len] = cur_idx - str;
+
+			st_array[res_len] = (cur_idx == NULL ? HEAD : (cur_idx - str));
 			ed_array[res_len] = ed_idx - str;
 			res_len++;
+
+			// cur_idx = (cur_idx == NULL ? HEAD : cur_idx);
+		}
+		else
+		{
+			cur_idx = former_char(ed_idx, str); //retest from the former char of the outside loop
 		}
 	}
 }
@@ -231,12 +282,17 @@ PRIVATE u32 *former_char(u32 *cur, u32 *head)
 		valid_ct += (*p == '\b' ? -1 : 1);
 		p--;
 	}
-	return valid_ct > 0 ? p : NULL;
+	return valid_ct > 0 ? (p + 1) : NULL;
 }
 
 PRIVATE void cache_cursor(TTY *p_tty)
 {
 	p_tty->cursor_cache[p_tty->cache_size] = p_tty->p_console->cursor;
+}
+
+PRIVATE void append_char(u32 *p, u32 c, int size)
+{
+	p[size] = c;
 }
 
 PRIVATE void reset(TTY *p_tty)
@@ -274,13 +330,9 @@ PRIVATE u32 tty_do_read(TTY *p_tty)
 	if (is_current_console(p_tty->p_console))
 	{
 		u32 key = keyboard_read();
+		return key;
 	}
 	return NONE;
-}
-
-PRIVATE void append(u32 *p, u32 c, int size)
-{
-	p[size] = c;
 }
 
 /*======================================================================*
@@ -312,7 +364,7 @@ PUBLIC void tty_write(TTY *p_tty, char *buf, int len)
 
 	while (i)
 	{
-		out_char(p_tty->p_console, *p++);
+		out_char(p_tty->p_console, *(p++));
 		i--;
 	}
 }

@@ -93,9 +93,9 @@ PUBLIC u32 keyboard_read()
 			 * 则 key 值将为定义在 keyboard.h 中的 'HOME'。
 			 */
 	u32 *keyrow; /* 指向 keymap[] 的某一行 */
-
 	if (kb_in.count > 0)
 	{
+		
 		code_with_E0 = 0;
 
 		scan_code = get_byte_from_kbuf();

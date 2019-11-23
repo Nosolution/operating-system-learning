@@ -14,7 +14,8 @@
 #define MAX_KEY_LEN 256
 #define FIND_MODE 1
 #define SHOW_MODE 2
-#define NONE 0
+#define NULL 0
+#define HEAD -1 
 
 struct s_console;
 

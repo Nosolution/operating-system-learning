@@ -45,8 +45,8 @@ LABEL_START:			; <--- 从这里开始 *************
 	mov	ss, ax
 	mov	sp, BaseOfStack
 
-	mov	dh, 0			; "Loading  "
-	call	DispStrRealMode		; 显示字符串
+	; mov	dh, 0			; "Loading  "
+	; call	DispStrRealMode		; 显示字符串
 
 	; 得到内存数
 	mov	ebx, 0			; ebx = 后续值, 开始时需为 0
@@ -82,20 +82,20 @@ LABEL_SEARCH_IN_ROOT_DIR_BEGIN:
 	mov	cl, 1
 	call	ReadSector
 
-	mov	si, KernelFileName	; ds:si -> "KERNEL  BIN"
+	mov	si, KernelFileName		; ds:si -> "KERNEL  BIN"
 	mov	di, OffsetOfKernelFile	; es:di -> BaseOfKernelFile:???? = BaseOfKernelFile*10h+????
 	cld
 	mov	dx, 10h
 LABEL_SEARCH_FOR_KERNELBIN:
-	cmp	dx, 0					; ┓
+	cmp	dx, 0								; ┓
 	jz	LABEL_GOTO_NEXT_SECTOR_IN_ROOT_DIR	; ┣ 循环次数控制, 如果已经读完了一个 Sector, 就跳到下一个 Sector
-	dec	dx					; ┛
+	dec	dx									; ┛
 	mov	cx, 11
 LABEL_CMP_FILENAME:
-	cmp	cx, 0			; ┓
+	cmp	cx, 0					; ┓
 	jz	LABEL_FILENAME_FOUND	; ┣ 循环次数控制, 如果比较了 11 个字符都相等, 表示找到
-	dec	cx			; ┛
-	lodsb				; ds:si -> al
+	dec	cx						; ┛
+	lodsb					; ds:si -> al
 	cmp	al, byte [es:di]	; if al == es:di
 	jz	LABEL_GO_ON
 	jmp	LABEL_DIFFERENT
@@ -104,10 +104,10 @@ LABEL_GO_ON:
 	jmp	LABEL_CMP_FILENAME	;	继续循环
 
 LABEL_DIFFERENT:
-	and	di, 0FFE0h		; else┓	这时di的值不知道是什么, di &= e0 为了让它是 20h 的倍数
-	add	di, 20h			;     ┃
-	mov	si, KernelFileName	;     ┣ di += 20h  下一个目录条目
-	jmp	LABEL_SEARCH_FOR_KERNELBIN;   ┛
+	and	di, 0FFE0h					; else┓	这时di的值不知道是什么, di &= e0 为了让它是 20h 的倍数
+	add	di, 20h						;     ┃
+	mov	si, KernelFileName			;     ┣ di += 20h  下一个目录条目
+	jmp	LABEL_SEARCH_FOR_KERNELBIN	;   ┛
 
 LABEL_GOTO_NEXT_SECTOR_IN_ROOT_DIR:
 	add	word [wSectorNo], 1
@@ -140,10 +140,10 @@ LABEL_FILENAME_FOUND:			; 找到 KERNEL.BIN 后便来到这里继续
 LABEL_GOON_LOADING_FILE:
 	push	ax			; ┓
 	push	bx			; ┃
-	mov	ah, 0Eh			; ┃ 每读一个扇区就在 "Loading  " 后面打一个点, 形成这样的效果:
-	mov	al, '.'			; ┃
-	mov	bl, 0Fh			; ┃ Loading ......
-	int	10h			; ┃
+	; mov	ah, 0Eh			; ┃ 每读一个扇区就在 "Loading  " 后面打一个点, 形成这样的效果:
+	; mov	al, '.'			; ┃
+	; mov	bl, 0Fh			; ┃ Loading ......
+	; int	10h			; ┃
 	pop	bx			; ┃
 	pop	ax			; ┛
 
@@ -163,8 +163,8 @@ LABEL_FILE_LOADED:
 
 	call	KillMotor		; 关闭软驱马达
 
-	mov	dh, 1			; "Ready."
-	call	DispStrRealMode		; 显示字符串
+	; mov	dh, 1			; "Ready."
+	; call	DispStrRealMode		; 显示字符串
 	
 ; 下面准备跳入保护模式 -------------------------------------------
 
@@ -620,37 +620,37 @@ DispMemInfo:
 
 	mov	esi, MemChkBuf
 	mov	ecx, [dwMCRNumber]	;for(int i=0;i<[MCRNumber];i++) // 每次得到一个ARDS(Address Range Descriptor Structure)结构
-.loop:					;{
-	mov	edx, 5			;	for(int j=0;j<5;j++)	// 每次得到一个ARDS中的成员，共5个成员
+.loop:						;{
+	mov	edx, 5				;	for(int j=0;j<5;j++)	// 每次得到一个ARDS中的成员，共5个成员
 	mov	edi, ARDStruct		;	{			// 依次显示：BaseAddrLow，BaseAddrHigh，LengthLow，LengthHigh，Type
-.1:					;
+.1:							;
 	push	dword [esi]		;
 	call	DispInt			;		DispInt(MemChkBuf[j*4]); // 显示一个成员
-	pop	eax			;
-	stosd				;		ARDStruct[j*4] = MemChkBuf[j*4];
-	add	esi, 4			;
-	dec	edx			;
-	cmp	edx, 0			;
-	jnz	.1			;	}
+	pop	eax					;
+	stosd					;		ARDStruct[j*4] = MemChkBuf[j*4];
+	add	esi, 4				;
+	dec	edx					;
+	cmp	edx, 0				;
+	jnz	.1					;	}
 	call	DispReturn		;	printf("\n");
 	cmp	dword [dwType], 1	;	if(Type == AddressRangeMemory) // AddressRangeMemory : 1, AddressRangeReserved : 2
-	jne	.2			;	{
-	mov	eax, [dwBaseAddrLow]	;
+	jne	.2					;	{
+	mov	eax, [dwBaseAddrLow];
 	add	eax, [dwLengthLow]	;
 	cmp	eax, [dwMemSize]	;		if(BaseAddrLow + LengthLow > MemSize)
-	jb	.2			;
+	jb	.2					;
 	mov	[dwMemSize], eax	;			MemSize = BaseAddrLow + LengthLow;
-.2:					;	}
+.2:							;	}
 	loop	.loop			;}
-					;
+							;
 	call	DispReturn		;printf("\n");
 	push	szRAMSize		;
 	call	DispStr			;printf("RAM size:");
-	add	esp, 4			;
-					;
+	add	esp, 4				;
+							;
 	push	dword [dwMemSize]	;
 	call	DispInt			;DispInt(MemSize);
-	add	esp, 4			;
+	add	esp, 4				;
 
 	pop	ecx
 	pop	edi

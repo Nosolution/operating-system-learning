@@ -22,10 +22,12 @@ PUBLIC	PROCESS	proc_table[NR_TASKS + NR_PROCS];
 PUBLIC	TASK	task_table[NR_TASKS] = {
 	{task_tty, STACK_SIZE_TTY, "tty"}};
 
-PUBLIC  TASK    user_proc_table[NR_PROCS] = {
-	{TestA, STACK_SIZE_TESTA, "TestA"},
-	{TestB, STACK_SIZE_TESTB, "TestB"},
-	{TestC, STACK_SIZE_TESTC, "TestC"}};
+// PUBLIC  TASK    user_proc_table[NR_PROCS] = {
+// 	{TestA, STACK_SIZE_TESTA, "TestA"},
+// 	{TestB, STACK_SIZE_TESTB, "TestB"},
+// 	{TestC, STACK_SIZE_TESTC, "TestC"}};
+
+PUBLIC  TASK    user_proc_table[0] = {};
 
 PUBLIC	char		task_stack[STACK_SIZE_TOTAL];
 
