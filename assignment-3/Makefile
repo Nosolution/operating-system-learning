@@ -61,6 +61,9 @@ buildimg :
 	sudo cp -fv kernel.bin /mnt/floppy
 	sudo umount /mnt/floppy
 
+# The reason why debug.rc exists is that I am using self-compiled bochs hence it runs in debug mode, 
+# where I need to enter 'c' character to make bochs continue each time I run bochs from command line. 
+# 'debug.rc' is used to make it auto.
 run : image
 	bochs -q -rc debug.rc
 

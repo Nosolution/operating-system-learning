@@ -1,4 +1,18 @@
-# 试错笔记
+# 项目笔记
+
+## 项目实现
+
+大部分借鉴(chaoxi)了Orange's第五章的代码。主要修改部分：
+
+- tty.h,tty.c，其中修改了大部分的逻辑以完成作业
+- keyboard.c，因被原tty的逻辑涉及而被一同修改
+- proto.h，修改和增加函数原形
+- proc.h，修改一些进程相关的参数，去除了与作业无关的进程
+
+## 使用
+
+1. make image
+2. make run
 
 ## bochs上安装FreeDos
 
@@ -26,37 +40,6 @@
     ```
 
 7. 再次启动bochs，转到b盘符，输入`pmtest1.com`
-
-## 保护模式
-
-在保护模式下，虽然段值仍然由原来16位的cs,ds等寄存器表示，但此时它仅仅变成了一个索引，这个索引指向GDT表的表头，GDT表项即为描述符。　　
-在设计特权级的每一步中，处理器都会对CPL、RPL、DPL等内容进行比较，这种比较无疑是动态的，是在运行过程中进行的，是发生在多个因素之间的行为。相对而言，段描述符中的界限、属性等内容则是静态的，是对某一项内容的界定和约束。
-
-## 流程
-
-```text
-var:
-    char_buffer
-    buffer_size
-    query_key
-    key_len
-    esc_flag
-    upper_flag
-    row_idx
-    col_idx
-
-function:
-    print(char* addr, int ct)
-        print ct chars starts stored in addr
-    print_in_blue(char* addr, int ct)
-        print ct chars starts stored in addr in blue
-    clear()
-        replace all video memory to zero
-    undo()
-        reduce buffer_size by 1 and recalculate idx
-    find()
-        find the key words in char_buffer and relpace them with blue ones
-```
 
 ## loader
 
