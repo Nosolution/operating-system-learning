@@ -27,7 +27,7 @@ PRIVATE void query(TTY *p_tty);
 PRIVATE void color_keyword(TTY *p_tty, char color);
 PRIVATE u32 find_last_char(TTY *p_tty);
 PRIVATE void match(u32 *str, unsigned int size, u32 *key, unsigned int key_len, u32 *st_array, u32 *ed_array);
-PRIVATE u32 *former_char_idx(u32 *cur, u32 *head);
+PRIVATE u32 *former_char_ptr(u32 *cur, u32 *head);
 PRIVATE void append_char(u32 *p, u32 c, int size);
 PRIVATE void record_cursor(TTY *p_tty);
 PRIVATE void reset(TTY *p_tty);
@@ -78,7 +78,7 @@ PRIVATE void init_tty(TTY *p_tty)
 	p_tty->key_len = 0;
 	p_tty->flag = 0;
 	p_tty->st_ticks = get_ticks();
-	p_tty->ticks_limit = 200000 * HZ / 1000;
+	p_tty->ticks_limit = 2000000 * HZ / 1000;
 
 	init_screen(p_tty);
 }
@@ -104,8 +104,6 @@ PUBLIC void process(TTY *p_tty, u32 key)
 		p_tty->history_size = p_tty->normal_history_size;
 		p_tty->key_len = 0;
 		p_tty->flag &= (!(FIND_MODE | SHOW_MODE));
-		// p_tty->flag &=!FIND_MODE;
-		// p_tty->flag &=!SHOW_MODE;
 	}
 	else if (p_tty->flag & FIND_MODE) //in find_mode
 	{
@@ -152,6 +150,7 @@ PUBLIC void process(TTY *p_tty, u32 key)
 		else
 		{
 			int raw_code = key & MASK_RAW;
+			u32 *p;
 			switch (raw_code)
 			{
 			case ESC: //exit find_mode
@@ -162,11 +161,24 @@ PUBLIC void process(TTY *p_tty, u32 key)
 				p_tty->flag &= (!FIND_MODE);
 				break;
 			case BACKSPACE:
-				out_char(p_tty->p_console, '\b');
-				append_char(p_tty->char_history, '\b', p_tty->history_size);
-				record_cursor(p_tty);
-				p_tty->history_size++;
-				p_tty->key_len--;
+				// out_char(p_tty->p_console, '\b');
+				p = former_char_ptr(p_tty->char_history + p_tty->history_size, p_tty->char_history);
+				if (p - p_tty->char_history >= p_tty->normal_history_size)
+				{
+					if (*p == '\t')
+					{
+						int steps = p_tty->cursor_history[p_tty->history_size - 1] - (p == p_tty->char_history ? 0 : p_tty->cursor_history[p - p_tty->char_history - 1]);
+						backward_clean(p_tty->p_console, steps);
+					}
+					else
+					{
+						out_char(p_tty->p_console, '\b');
+					}
+					append_char(p_tty->char_history, '\b', p_tty->history_size);
+					record_cursor(p_tty);
+					p_tty->history_size++;
+					p_tty->key_len--;
+				}
 				break;
 			case TAB:
 				out_char(p_tty->p_console, '\t');
@@ -175,6 +187,7 @@ PUBLIC void process(TTY *p_tty, u32 key)
 				p_tty->history_size++;
 				append_char(p_tty->query_key, '\t', p_tty->key_len);
 				p_tty->key_len++;
+				break;
 			case ENTER: //enter show_mode
 				p_tty->flag |= SHOW_MODE;
 				query(p_tty);
@@ -219,6 +232,7 @@ PUBLIC void process(TTY *p_tty, u32 key)
 		else
 		{
 			int raw_code = key & MASK_RAW;
+			u32 *p;
 			switch (raw_code)
 			{
 			case ESC:
@@ -226,16 +240,30 @@ PUBLIC void process(TTY *p_tty, u32 key)
 				p_tty->normal_history_size = p_tty->history_size; //store history size in normal mode
 				break;
 			case BACKSPACE:
-				out_char(p_tty->p_console, '\b');
-				append_char(p_tty->char_history, '\b', p_tty->history_size);
-				record_cursor(p_tty);
-				p_tty->history_size++;
+				// out_char(p_tty->p_console, '\b');
+				p = former_char_ptr(p_tty->char_history + p_tty->history_size, p_tty->char_history);
+				if (p != NULL)
+				{
+					if ((*p == '\t') || (*p == '\n'))
+					{
+						int steps = p_tty->cursor_history[p_tty->history_size - 1] - (p == p_tty->char_history ? 0 : p_tty->cursor_history[p - p_tty->char_history - 1]);
+						backward_clean(p_tty->p_console, steps);
+					}
+					else
+					{
+						out_char(p_tty->p_console, '\b');
+					}
+					append_char(p_tty->char_history, '\b', p_tty->history_size);
+					record_cursor(p_tty);
+					p_tty->history_size++;
+				}
 				break;
 			case TAB:
 				out_char(p_tty->p_console, '\t');
 				append_char(p_tty->char_history, '\t', p_tty->history_size);
 				record_cursor(p_tty);
 				p_tty->history_size++;
+				break;
 			case ENTER:
 				out_char(p_tty->p_console, '\n');
 				append_char(p_tty->char_history, '\n', p_tty->history_size);
@@ -280,7 +308,7 @@ PRIVATE void color_keyword(TTY *p_tty, char color)
  */
 PRIVATE u32 find_last_char(TTY *p_tty)
 {
-	u32 *last_char = former_char_idx(p_tty->char_history + p_tty->history_size, p_tty->char_history);
+	u32 *last_char = former_char_ptr(p_tty->char_history + p_tty->history_size, p_tty->char_history);
 	return last_char == NULL ? 0 : *last_char;
 }
 
@@ -297,7 +325,7 @@ PRIVATE void match(u32 *str, unsigned int size, u32 *key, unsigned int key_len, 
 {
 	memset(st_array, 0xFF, 4 * MAX_HISTORY_SIZE);
 	memset(ed_array, 0xFF, 4 * MAX_HISTORY_SIZE);
-	u32 *cur_idx = former_char_idx(str + size, str);
+	u32 *cur_idx = former_char_ptr(str + size, str);
 	int res_len = 0;
 
 	while (cur_idx != NULL)
@@ -311,9 +339,9 @@ PRIVATE void match(u32 *str, unsigned int size, u32 *key, unsigned int key_len, 
 			if (*cur_idx != key[i])
 				break;
 			i--;
-			cur_idx = former_char_idx(cur_idx, str);
+			cur_idx = former_char_ptr(cur_idx, str);
 		}
-		if (i < 0)//keyword is found
+		if (i < 0) //keyword is found
 		{
 			//judge if has reached the head of str
 			st_array[res_len] = (cur_idx == NULL ? HEAD : (cur_idx - str));
@@ -323,7 +351,7 @@ PRIVATE void match(u32 *str, unsigned int size, u32 *key, unsigned int key_len, 
 		else
 		{
 			//next check starts from the former char of current starting point
-			cur_idx = former_char_idx(ed_idx, str); 
+			cur_idx = former_char_ptr(ed_idx, str);
 		}
 	}
 }
@@ -333,7 +361,7 @@ PRIVATE void match(u32 *str, unsigned int size, u32 *key, unsigned int key_len, 
  * @param	cur		current position, the pos of found char will be preceding
  * @param	head	the head of given array, to identify the range 
  */
-PRIVATE u32 *former_char_idx(u32 *cur, u32 *head)
+PRIVATE u32 *former_char_ptr(u32 *cur, u32 *head)
 {
 	u32 *p = cur - 1;
 	int valid_ct = 0;
