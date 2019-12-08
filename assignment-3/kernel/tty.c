@@ -95,14 +95,17 @@ PUBLIC void process(TTY *p_tty, u32 key)
 		//do nothing
 		return;
 	}
-	//exit find_mode
+	//exit show_mode
 	else if ((p_tty->flag & SHOW_MODE) && (key == ESC))
 	{
 		backward_clean(p_tty->p_console,
 					   p_tty->cursor_history[p_tty->history_size - 1] - p_tty->cursor_history[p_tty->normal_history_size - 1]);
 		color_keyword(p_tty, DEFAULT_CHAR_COLOR);
+		p_tty->history_size = p_tty->normal_history_size;
 		p_tty->key_len = 0;
 		p_tty->flag &= (!(FIND_MODE | SHOW_MODE));
+		// p_tty->flag &=!FIND_MODE;
+		// p_tty->flag &=!SHOW_MODE;
 	}
 	else if (p_tty->flag & FIND_MODE) //in find_mode
 	{
@@ -182,7 +185,7 @@ PUBLIC void process(TTY *p_tty, u32 key)
 			}
 		}
 	}
-	else //in find_mode
+	else //in normal_mode
 	{
 		if (!(key & FLAG_EXT))
 		{
