@@ -98,12 +98,6 @@ PUBLIC int kernel_main()
 	write_cnt = 0;
 	cur_proc_type = READING;
 
-	// for (i = 0; i < 3; i++)
-	// {
-	// 	readers[i] = 0;
-	// }
-	// writers[0] = 0;
-
 	init_clock();
 	init_keyboard();
 
@@ -193,21 +187,12 @@ void reader(int time)
 		V(rmutex);
 		V(z);
 #else
-		// print_str(p_proc_ready->p_name, DEFAULT_CHAR_COLOR);
-		// print_str(" before rmutex: ", DEFAULT_CHAR_COLOR);
-		// printn(rmutex->available);
-		// print_str("\n", DEFAULT_CHAR_COLOR);
 		P(rmutex);
 		if (read_cnt == 0)
 			P(wmutex);
 		read_cnt++;
 		V(rmutex);
-		// print_str(p_proc_ready->p_name, DEFAULT_CHAR_COLOR);
-		// print_str(" after rmutex: ", DEFAULT_CHAR_COLOR);
-		// printn(rmutex->available);
-		// print_str("\n", DEFAULT_CHAR_COLOR);
 #endif
-		// print_str("change to reading\n", RED);
 		cur_proc_type = READING;
 		print_str(p_proc_ready->p_name, color);
 		print_str(" started reading\n", color);
@@ -247,7 +232,6 @@ void writer(int time)
 #endif
 		int color = p_proc_ready->p_name[0] - 'A' + 1;
 		P(wmutex);
-		// print_str("change to writing\n", RED);
 		cur_proc_type = WRITING;
 		print_str(p_proc_ready->p_name, color);
 		print_str(" started writing\n", color);

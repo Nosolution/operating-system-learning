@@ -100,20 +100,10 @@ PUBLIC int sys_dly(int mills)
 PUBLIC int sys_P(SEMAPHORE *t)
 {
 	disable_int();
-	// print_str(p_proc_ready->p_name, DEFAULT_CHAR_COLOR);
-	// print_str(" P rmutex: ", DEFAULT_CHAR_COLOR);
-	// printn(t->available);
-	// print_str("\n", DEFAULT_CHAR_COLOR);
 	t->available--;
-	// print_str(p_proc_ready->p_name, DEFAULT_CHAR_COLOR);
-	// print_str(" after P rmutex: ", DEFAULT_CHAR_COLOR);
-	// printn(t->available);
-	// print_str("\n", DEFAULT_CHAR_COLOR);
 	if (t->available < 0)
 	{
 		wait_cur();
-		// print_str(p_proc_ready->p_name, BLUE);
-		// print_str(" needs to wait\n", BLUE);
 		if (queue_not_full(t->wait_head, t->wait_tail, MAX_WAITING))
 			t->wait[t->wait_tail] = p_proc_ready; //进入等待进程队列
 		t->wait_tail = (t->wait_tail + 1) % MAX_WAITING;
@@ -130,20 +120,10 @@ PUBLIC int sys_P(SEMAPHORE *t)
 PUBLIC int sys_V(SEMAPHORE *t)
 {
 	disable_int();
-	// print_str(p_proc_ready->p_name, DEFAULT_CHAR_COLOR);
-	// print_str(" V rmutex: ", DEFAULT_CHAR_COLOR);
-	// printn(t->available);
-	// print_str("\n", DEFAULT_CHAR_COLOR);
 	t->available++;
-	// print_str(p_proc_ready->p_name, DEFAULT_CHAR_COLOR);
-	// print_str(" after V rmutex: ", DEFAULT_CHAR_COLOR);
-	// printn(t->available);
-	// print_str("\n", DEFAULT_CHAR_COLOR);
 	if (t->available <= 0)
 	{
 		t->wait[t->wait_head]->stat &= ~WAIT;
-		// print_str(t->wait[t->wait_head]->p_name, BLUE);
-		// print_str(" is released\n", BLUE);
 		t->wait_head = (t->wait_head + 1) % MAX_WAITING;
 	}
 	enable_int();
