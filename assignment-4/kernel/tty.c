@@ -44,26 +44,32 @@ PUBLIC void task_tty()
 	for (p_tty = TTY_FIRST; p_tty < TTY_END; p_tty++)
 	{
 		init_tty(p_tty);
-		reset(p_tty);
+		// reset(p_tty);
 	}
 	select_console(0);
 	while (1)
 	{
-		for (p_tty = TTY_FIRST; p_tty < TTY_END; p_tty++)
-		{
 
-			// timing
-			if (get_ticks() - p_tty->st_ticks > p_tty->ticks_limit && !(p_tty->flag & FIND_MODE))
-			{
-				reset(p_tty);
-			}
-			else
-			{
-				u32 key = tty_do_read(p_tty);
-				process(p_tty, key);
-			}
-		}
+		// out_colorful_char(p_tty->p_console, 'a', DEFAULT_CHAR_COLOR);
 	}
+
+	// while (1)
+	// {
+	// 	for (p_tty = TTY_FIRST; p_tty < TTY_END; p_tty++)
+	// 	{
+
+	// 		// timing
+	// 		if (get_ticks() - p_tty->st_ticks > p_tty->ticks_limit && !(p_tty->flag & FIND_MODE))
+	// 		{
+	// 			reset(p_tty);
+	// 		}
+	// 		else
+	// 		{
+	// 			u32 key = tty_do_read(p_tty);
+	// 			process(p_tty, key);
+	// 		}
+	// 	}
+	// }
 }
 
 /*======================================================================*
