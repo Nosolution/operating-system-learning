@@ -7,6 +7,10 @@
 #define WAIT 1
 #define MAX_WAITING 50
 #define MAX_SEM 30
+#define TIMESLICE 1000
+#define POSITIONS 2
+#define PRIORITY 1
+#define QUANTUMS 1000
 
 typedef struct s_stackframe
 {					/* proc_ptr points here				↑ Low			*/
@@ -69,10 +73,11 @@ typedef struct semaphore
 
 /* stacks of tasks */
 #define STACK_SIZE_TTY 0x8000
-#define STACK_SIZE_TESTA 0x8000
 #define STACK_SIZE_A 0x8000
 #define STACK_SIZE_B 0x8000
 #define STACK_SIZE_C 0x8000
 #define STACK_SIZE_D 0x8000
+#define STACK_SIZE_E 0x8000
+#define STACK_SIZE_F 0x8000
 
-#define STACK_SIZE_TOTAL (STACK_SIZE_TTY + STACK_SIZE_TESTA + STACK_SIZE_A + STACK_SIZE_B + STACK_SIZE_C + STACK_SIZE_D)
+#define STACK_SIZE_TOTAL (STACK_SIZE_TTY + STACK_SIZE_A + STACK_SIZE_B + STACK_SIZE_C + STACK_SIZE_D + STACK_SIZE_F + STACK_SIZE_E)

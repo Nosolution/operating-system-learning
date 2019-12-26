@@ -114,9 +114,6 @@ PUBLIC int kernel_main()
 
 	// proc_table[6].ticks = proc_table[6].req_ticks = 100;
 
-	// proc_table[1].nr_tty = 0;
-	// proc_table[2].nr_tty = 1;
-	// proc_table[3].nr_tty = 1;
 
 	k_reenter = 0;
 	ticks = 0;

@@ -20,12 +20,14 @@ PUBLIC PROCESS proc_table[NR_TASKS];
 
 PUBLIC char task_stack[STACK_SIZE_TOTAL];
 
-PUBLIC TASK task_table[NR_TASKS] = {{task_tty, STACK_SIZE_TTY, "tty"},
-                                    {TestA, STACK_SIZE_TESTA, "TestA"},
-                                    {A, STACK_SIZE_A, "A"},
-                                    {B, STACK_SIZE_B, "B"},
-                                    {C, STACK_SIZE_C, "C"},
-                                    {D, STACK_SIZE_D, "D"}};
+PUBLIC TASK task_table[NR_TASKS] = {
+    // {task_tty, STACK_SIZE_TTY, "tty"},
+    {reader_A, STACK_SIZE_A, "A"},
+    {reader_B, STACK_SIZE_B, "B"},
+    {reader_C, STACK_SIZE_C, "C"},
+    {writer_D, STACK_SIZE_D, "D"},
+    {writer_E, STACK_SIZE_E, "E"},
+    {observer, STACK_SIZE_F, "F"}};
 
 PUBLIC TTY tty_table[NR_CONSOLES];
 PUBLIC CONSOLE console_table[NR_CONSOLES];
