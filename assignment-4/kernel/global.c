@@ -27,11 +27,11 @@ PUBLIC TASK task_table[NR_TASKS] = {
 // 	{TestC, STACK_SIZE_TESTC, "TestC"}};
 
 PUBLIC TASK user_proc_table[NR_PROCS] = {
-    {reader_a1, STACK_SIZE_A, "A"},
-    {reader_b1, STACK_SIZE_B, "B"},
-    {reader_c1, STACK_SIZE_C, "C"},
-    {writer_d1, STACK_SIZE_D, "D"},
-    {writer_e1, STACK_SIZE_E, "E"},
+    {reader_A, STACK_SIZE_A, "A"},
+    {reader_B, STACK_SIZE_B, "B"},
+    {reader_C, STACK_SIZE_C, "C"},
+    {writer_D, STACK_SIZE_D, "D"},
+    {writer_E, STACK_SIZE_E, "E"},
     {observer, STACK_SIZE_F, "F"},
 };
 

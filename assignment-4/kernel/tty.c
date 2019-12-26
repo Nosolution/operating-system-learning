@@ -44,7 +44,7 @@ PUBLIC void task_tty()
 	for (p_tty = TTY_FIRST; p_tty < TTY_END; p_tty++)
 	{
 		init_tty(p_tty);
-		// reset(p_tty);
+		reset(p_tty);
 	}
 	select_console(0);
 	while (1)

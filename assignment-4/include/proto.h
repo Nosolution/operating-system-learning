@@ -22,16 +22,11 @@ PUBLIC void delay(int time);
 void restart();
 
 /* main.c */
-void TestA();
-void TestB();
-void TestC();
-void reader_a1();
-void reader_b1();
-void reader_c1();
-void writer_d1();
-void writer_e1();
-void reader_2();
-void writer_2();
+void reader_A();
+void reader_B();
+void reader_C();
+void writer_D();
+void writer_E();
 void observer();
 
 /* i8259.c */
@@ -71,7 +66,7 @@ PUBLIC int vsprintf(char *buf, const char *fmt, va_list args);
 PUBLIC int sys_get_ticks();
 PUBLIC int sys_write(char *buf, int len, PROCESS *p_proc);
 PUBLIC int sys_dly(int k);
-PUBLIC int sys_print_str(char *str, int color);
+PUBLIC int sys_print_str(const char *str, int color);
 PUBLIC int sys_P(SEMAPHORE *t);
 PUBLIC int sys_V(SEMAPHORE *t);
 
@@ -82,13 +77,10 @@ PUBLIC void sys_call(); /* int_handler */
 PUBLIC int get_ticks();
 PUBLIC void write(char *buf, int len);
 PUBLIC int dly(int k);
-PUBLIC int print_str(char *str, int color);
+PUBLIC int print_str(const char *str, int color);
 PUBLIC int printn(int n, int color);
 PUBLIC int P(SEMAPHORE *t);
 PUBLIC int V(SEMAPHORE *t);
 
 /*  proc.c  */
 PUBLIC SEMAPHORE *sem_create(int cnt);
-PUBLIC void init_memory();
-PUBLIC void ready(PROCESS *p);
-PUBLIC void mock_run();

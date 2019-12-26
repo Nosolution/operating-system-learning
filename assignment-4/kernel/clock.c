@@ -26,7 +26,10 @@ PUBLIC void clock_handler(int irq)
         {
                 return;
         }
-        proc_tick();
+        if (ticks < 4000)
+                return;
+
+        schedule();
 }
 
 /*======================================================================*
