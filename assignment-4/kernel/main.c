@@ -15,6 +15,12 @@
 #include "global.h"
 #include "proto.h"
 
+#define DEBUG 0
+
+int read_cnt;
+int write_cnt;
+int cur_proc_type;
+SEMAPHORE *rmutex, *wmutex, *x, *y, *z, *read_available;
 /*======================================================================*
                             kernel_main
  *======================================================================*/
@@ -77,19 +83,20 @@ PUBLIC int kernel_main()
 		selector_ldt += 1 << 3;
 	}
 
-	proc_table[0].ticks = proc_table[0].priority = 15;
-	proc_table[1].ticks = proc_table[1].priority = 5;
-	proc_table[2].ticks = proc_table[2].priority = 5;
-	proc_table[3].ticks = proc_table[3].priority = 5;
-
-	proc_table[1].nr_tty = 0;
-	proc_table[2].nr_tty = 1;
-	proc_table[3].nr_tty = 1;
-
 	k_reenter = 0;
 	ticks = 0;
 
 	p_proc_ready = proc_table;
+
+	x = sem_create(1);
+	y = sem_create(1);
+	z = sem_create(1);
+	rmutex = sem_create(1);
+	wmutex = sem_create(1);
+	read_available = sem_create(READNUM);
+	read_cnt = 0;
+	write_cnt = 0;
+	cur_proc_type = READING;
 
 	init_clock();
 	init_keyboard();
@@ -101,41 +108,173 @@ PUBLIC int kernel_main()
 	}
 }
 
-/*======================================================================*
-                               TestA
- *======================================================================*/
-void TestA()
+void reader_A()
 {
-	int i = 0;
+	dly(3000);
+	reader(2);
+}
+
+void reader_B()
+{
+	dly(4000);
+	reader(3);
+}
+
+void reader_C()
+{
+	dly(5000);
+	reader(3);
+}
+
+void writer_D()
+{
+	dly(6000);
+	writer(3);
+}
+
+void writer_E()
+{
+	dly(7000);
+	writer(4);
+}
+
+int get_read_cnt()
+{
+	return read_cnt;
+}
+
+int get_cur_proc_type()
+{
+	return cur_proc_type;
+}
+
+#if DEBUG == 1
+void reader(int i)
+{
 	while (1)
 	{
-		printf("<Ticks:%x>", get_ticks());
-		milli_delay(200);
+		print_str(p_proc_ready->p_name, DEFAULT_CHAR_COLOR);
+		dly(i * TIMESLICE);
 	}
 }
 
-/*======================================================================*
-                               TestB
- *======================================================================*/
-void TestB()
+void writer(int i)
 {
-	int i = 0x1000;
 	while (1)
 	{
-		printf("B");
-		milli_delay(200);
+		print_str(p_proc_ready->p_name, DEFAULT_CHAR_COLOR);
+		dly(i * TIMESLICE);
 	}
 }
 
-/*======================================================================*
-                               TestB
- *======================================================================*/
-void TestC()
+#else
+void reader(int time)
 {
-	int i = 0x2000;
 	while (1)
 	{
-		printf("C");
-		milli_delay(200);
+		P(read_available);
+		int color = p_proc_ready->p_name[0] - 'A' + 1;
+		// print_str(p_proc_ready->p_name, color);
+		// print_str(" runs\n", color);
+#if PRIORITY == WRITING
+		P(z);
+		P(rmutex);
+		P(x);
+		read_cnt++;
+		if (read_cnt == 1)
+			P(wmutex);
+		V(x);
+		V(rmutex);
+		V(z);
+#else
+		P(rmutex);
+		if (read_cnt == 0)
+			P(wmutex);
+		read_cnt++;
+		V(rmutex);
+#endif
+		cur_proc_type = READING;
+		print_str(p_proc_ready->p_name, color);
+		print_str(" started reading\n", color);
+
+		dly(time * TIMESLICE);
+
+		print_str(p_proc_ready->p_name, color);
+		print_str(" finished reading\n", color);
+
+#if PRIORITY == WRITING
+		P(x);
+		read_cnt--;
+		if (read_cnt == 0)
+			V(wmutex);
+		V(x);
+#else
+		P(rmutex);
+		read_cnt--;
+		if (read_cnt == 0)
+			V(wmutex);
+		V(rmutex);
+#endif
+		V(read_available);
 	}
+}
+
+void writer(int time)
+{
+	while (1)
+	{
+#if PRIORITY == WRITING
+		P(y);
+		write_cnt++;
+		if (write_cnt == 1)
+			P(rmutex);
+		V(y);
+#endif
+		int color = p_proc_ready->p_name[0] - 'A' + 1;
+		P(wmutex);
+		cur_proc_type = WRITING;
+		print_str(p_proc_ready->p_name, color);
+		print_str(" started writing\n", color);
+
+		dly(time * TIMESLICE);
+
+		print_str(p_proc_ready->p_name, color);
+		print_str(" finished writing\n", color);
+		V(wmutex);
+
+#if PRIORITY == WRITING
+		P(y);
+		write_cnt--;
+		if (write_cnt == 0)
+			V(rmutex);
+		V(y);
+#endif
+	}
+}
+#endif
+
+void observer()
+{
+#if DEBUG == 1
+	while (1)
+	{
+		print_str(p_proc_ready->p_name, DEFAULT_CHAR_COLOR);
+		dly(1 * TIMESLICE);
+	}
+#else
+	while (1)
+	{
+		if (get_cur_proc_type() == READING)
+		{
+			print_str("READING: ", DEFAULT_CHAR_COLOR);
+			printn(get_read_cnt());
+			print_str(" readers are reading.\n", DEFAULT_CHAR_COLOR);
+		}
+		else
+		{
+			print_str("WRITING\n", DEFAULT_CHAR_COLOR);
+		}
+		dly(TIMESLICE);
+	}
+#endif
 }
