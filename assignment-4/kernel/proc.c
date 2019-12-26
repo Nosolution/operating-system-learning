@@ -14,11 +14,9 @@
 #include "proc.h"
 #include "global.h"
 #include "proto.h"
-#define TINY 1
 
 PUBLIC SEMAPHORE sems[MAX_SEM];
 int sem_head;
-int tiny_tick = TINY;
 PUBLIC void wait_cur();
 PUBLIC int queue_not_full(int head, int tail, int capacity);
 
@@ -33,11 +31,6 @@ PUBLIC void schedule()
 			p->dly--;
 	}
 
-	tiny_tick--;
-	if (tiny_tick > 0)
-		return;
-	else
-		tiny_tick = TINY;
 
 	do
 	{
@@ -119,8 +112,8 @@ PUBLIC int sys_P(SEMAPHORE *t)
 	if (t->available < 0)
 	{
 		wait_cur();
-		print_str(p_proc_ready->p_name, BLUE);
-		print_str(" needs to wait\n", BLUE);
+		// print_str(p_proc_ready->p_name, BLUE);
+		// print_str(" needs to wait\n", BLUE);
 		if (queue_not_full(t->wait_head, t->wait_tail, MAX_WAITING))
 			t->wait[t->wait_tail] = p_proc_ready; //进入等待进程队列
 		t->wait_tail = (t->wait_tail + 1) % MAX_WAITING;
@@ -149,8 +142,8 @@ PUBLIC int sys_V(SEMAPHORE *t)
 	if (t->available <= 0)
 	{
 		t->wait[t->wait_head]->stat &= ~WAIT;
-		print_str(t->wait[t->wait_head]->p_name, BLUE);
-		print_str(" is released\n", BLUE);
+		// print_str(t->wait[t->wait_head]->p_name, BLUE);
+		// print_str(" is released\n", BLUE);
 		t->wait_head = (t->wait_head + 1) % MAX_WAITING;
 	}
 	enable_int();

@@ -180,8 +180,8 @@ void reader(int time)
 	{
 		P(read_available);
 		int color = p_proc_ready->p_name[0] - 'A' + 1;
-		print_str(p_proc_ready->p_name, color);
-		print_str(" runs\n", color);
+		// print_str(p_proc_ready->p_name, color);
+		// print_str(" runs\n", color);
 #if PRIORITY == WRITING
 		P(z);
 		P(rmutex);
@@ -200,6 +200,7 @@ void reader(int time)
 		P(rmutex);
 		if (read_cnt == 0)
 			P(wmutex);
+		read_cnt++;
 		V(rmutex);
 		// print_str(p_proc_ready->p_name, DEFAULT_CHAR_COLOR);
 		// print_str(" after rmutex: ", DEFAULT_CHAR_COLOR);

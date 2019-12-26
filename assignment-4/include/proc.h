@@ -12,7 +12,7 @@
 #define MAX_SEM 10
 #define READING 0
 #define WRITING 1
-#define PRIORITY 0
+#define PRIORITY 1
 
 typedef struct s_stackframe
 {					/* proc_ptr points here				↑ Low			*/
