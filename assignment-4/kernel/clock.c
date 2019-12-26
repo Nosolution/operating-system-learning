@@ -26,7 +26,7 @@ PUBLIC void clock_handler(int irq)
         {
                 return;
         }
-        if (ticks < 4000)
+        if (ticks < 2000)
                 return;
 
         schedule();

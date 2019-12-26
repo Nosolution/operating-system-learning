@@ -19,9 +19,7 @@
 
 int read_cnt;
 int write_cnt;
-int cur_process;
-char *readers[READER_NUM];
-char *writers[1];
+int cur_proc_type;
 SEMAPHORE *rmutex, *wmutex, *x, *y, *z, *read_available;
 /*======================================================================*
                             kernel_main
@@ -98,13 +96,13 @@ PUBLIC int kernel_main()
 	read_available = sem_create(READNUM);
 	read_cnt = 0;
 	write_cnt = 0;
-	cur_process = READING;
+	cur_proc_type = READING;
 
-	for (i = 0; i < 3; i++)
-	{
-		readers[i] = 0;
-	}
-	writers[0] = 0;
+	// for (i = 0; i < 3; i++)
+	// {
+	// 	readers[i] = 0;
+	// }
+	// writers[0] = 0;
 
 	init_clock();
 	init_keyboard();
@@ -118,32 +116,42 @@ PUBLIC int kernel_main()
 
 void reader_A()
 {
-	dly(2000);
+	dly(3000);
 	reader(2);
 }
 
 void reader_B()
 {
-	dly(3000);
+	dly(4000);
 	reader(3);
 }
 
 void reader_C()
 {
-	dly(6000);
+	dly(5000);
 	reader(3);
 }
 
 void writer_D()
 {
-	dly(8000);
+	dly(6000);
 	writer(3);
 }
 
 void writer_E()
 {
-	dly(10000);
+	dly(7000);
 	writer(4);
+}
+
+int get_read_cnt()
+{
+	return read_cnt;
+}
+
+int get_cur_proc_type()
+{
+	return cur_proc_type;
 }
 
 #if DEBUG == 1
@@ -171,6 +179,9 @@ void reader(int time)
 	while (1)
 	{
 		P(read_available);
+		int color = p_proc_ready->p_name[0] - 'A' + 1;
+		print_str(p_proc_ready->p_name, color);
+		print_str(" runs\n", color);
 #if PRIORITY == WRITING
 		P(z);
 		P(rmutex);
@@ -182,19 +193,28 @@ void reader(int time)
 		V(rmutex);
 		V(z);
 #else
+		// print_str(p_proc_ready->p_name, DEFAULT_CHAR_COLOR);
+		// print_str(" before rmutex: ", DEFAULT_CHAR_COLOR);
+		// printn(rmutex->available);
+		// print_str("\n", DEFAULT_CHAR_COLOR);
 		P(rmutex);
 		if (read_cnt == 0)
 			P(wmutex);
-		v(rmutex);
+		V(rmutex);
+		// print_str(p_proc_ready->p_name, DEFAULT_CHAR_COLOR);
+		// print_str(" after rmutex: ", DEFAULT_CHAR_COLOR);
+		// printn(rmutex->available);
+		// print_str("\n", DEFAULT_CHAR_COLOR);
 #endif
-		cur_process = READING;
-		print_str(p_proc_ready->p_name, DEFAULT_CHAR_COLOR);
-		print_str(" started reading\n", DEFAULT_CHAR_COLOR);
+		// print_str("change to reading\n", RED);
+		cur_proc_type = READING;
+		print_str(p_proc_ready->p_name, color);
+		print_str(" started reading\n", color);
 
 		dly(time * TIMESLICE);
 
-		print_str(p_proc_ready->p_name, DEFAULT_CHAR_COLOR);
-		print_str(" finished reading\n", DEFAULT_CHAR_COLOR);
+		print_str(p_proc_ready->p_name, color);
+		print_str(" finished reading\n", color);
 
 #if PRIORITY == WRITING
 		P(x);
@@ -207,7 +227,7 @@ void reader(int time)
 		read_cnt--;
 		if (read_cnt == 0)
 			V(wmutex);
-		v(rmutex);
+		V(rmutex);
 #endif
 		V(read_available);
 	}
@@ -224,16 +244,17 @@ void writer(int time)
 			P(rmutex);
 		V(y);
 #endif
-
+		int color = p_proc_ready->p_name[0] - 'A' + 1;
 		P(wmutex);
-		cur_process = WRITING;
-		print_str(p_proc_ready->p_name, DEFAULT_CHAR_COLOR);
-		print_str(" started reading\n", DEFAULT_CHAR_COLOR);
+		// print_str("change to writing\n", RED);
+		cur_proc_type = WRITING;
+		print_str(p_proc_ready->p_name, color);
+		print_str(" started writing\n", color);
 
 		dly(time * TIMESLICE);
 
-		print_str(p_proc_ready->p_name, DEFAULT_CHAR_COLOR);
-		print_str(" finished reading\n", DEFAULT_CHAR_COLOR);
+		print_str(p_proc_ready->p_name, color);
+		print_str(" finished writing\n", color);
 		V(wmutex);
 
 #if PRIORITY == WRITING
@@ -258,17 +279,17 @@ void observer()
 #else
 	while (1)
 	{
-		if (cur_process == READING)
+		if (get_cur_proc_type() == READING)
 		{
-			print_str("Currently is reading\n", DEFAULT_CHAR_COLOR);
-			printn(read_cnt, DEFAULT_CHAR_COLOR);
+			print_str("READING: ", DEFAULT_CHAR_COLOR);
+			printn(get_read_cnt());
 			print_str(" readers are reading.\n", DEFAULT_CHAR_COLOR);
 		}
 		else
 		{
-			print_str("Currently is writing\n", DEFAULT_CHAR_COLOR);
+			print_str("WRITING\n", DEFAULT_CHAR_COLOR);
 		}
-		milli_delay(TIMESLICE);
+		dly(TIMESLICE);
 	}
 #endif
 }

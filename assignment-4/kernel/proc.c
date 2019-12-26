@@ -14,13 +14,11 @@
 #include "proc.h"
 #include "global.h"
 #include "proto.h"
+#define TINY 1
 
-PUBLIC PROCESS proc_head;
-PUBLIC PROCESS proc_tail;
 PUBLIC SEMAPHORE sems[MAX_SEM];
 int sem_head;
-int slice_ticks = TIMESLICE + 10;
-int min(int a, int b);
+int tiny_tick = TINY;
 PUBLIC void wait_cur();
 PUBLIC int queue_not_full(int head, int tail, int capacity);
 
@@ -34,6 +32,12 @@ PUBLIC void schedule()
 		if (p->dly)
 			p->dly--;
 	}
+
+	tiny_tick--;
+	if (tiny_tick > 0)
+		return;
+	else
+		tiny_tick = TINY;
 
 	do
 	{
@@ -71,7 +75,7 @@ PUBLIC int sys_print_str(const char *str, int color)
 	return 0;
 }
 
-PUBLIC int printn(int n, int color)
+PUBLIC int printn(int n)
 {
 	char num[40];
 	char rev[40];
@@ -90,7 +94,7 @@ PUBLIC int printn(int n, int color)
 	}
 	num[l] = '\0';
 
-	sys_print_str(num, color);
+	write(num, l);
 }
 
 PUBLIC int sys_dly(int mills)
@@ -102,27 +106,54 @@ PUBLIC int sys_dly(int mills)
 
 PUBLIC int sys_P(SEMAPHORE *t)
 {
-
+	disable_int();
+	// print_str(p_proc_ready->p_name, DEFAULT_CHAR_COLOR);
+	// print_str(" P rmutex: ", DEFAULT_CHAR_COLOR);
+	// printn(t->available);
+	// print_str("\n", DEFAULT_CHAR_COLOR);
 	t->available--;
+	// print_str(p_proc_ready->p_name, DEFAULT_CHAR_COLOR);
+	// print_str(" after P rmutex: ", DEFAULT_CHAR_COLOR);
+	// printn(t->available);
+	// print_str("\n", DEFAULT_CHAR_COLOR);
 	if (t->available < 0)
 	{
 		wait_cur();
+		print_str(p_proc_ready->p_name, BLUE);
+		print_str(" needs to wait\n", BLUE);
 		if (queue_not_full(t->wait_head, t->wait_tail, MAX_WAITING))
 			t->wait[t->wait_tail] = p_proc_ready; //进入等待进程队列
 		t->wait_tail = (t->wait_tail + 1) % MAX_WAITING;
+		enable_int();
 		schedule();
+	}
+	else
+	{
+		enable_int();
 	}
 	return 0;
 }
 
 PUBLIC int sys_V(SEMAPHORE *t)
 {
+	disable_int();
+	// print_str(p_proc_ready->p_name, DEFAULT_CHAR_COLOR);
+	// print_str(" V rmutex: ", DEFAULT_CHAR_COLOR);
+	// printn(t->available);
+	// print_str("\n", DEFAULT_CHAR_COLOR);
 	t->available++;
+	// print_str(p_proc_ready->p_name, DEFAULT_CHAR_COLOR);
+	// print_str(" after V rmutex: ", DEFAULT_CHAR_COLOR);
+	// printn(t->available);
+	// print_str("\n", DEFAULT_CHAR_COLOR);
 	if (t->available <= 0)
 	{
 		t->wait[t->wait_head]->stat &= ~WAIT;
+		print_str(t->wait[t->wait_head]->p_name, BLUE);
+		print_str(" is released\n", BLUE);
 		t->wait_head = (t->wait_head + 1) % MAX_WAITING;
 	}
+	enable_int();
 	return 0;
 }
 
@@ -131,6 +162,6 @@ PUBLIC SEMAPHORE *sem_create(int cnt)
 	SEMAPHORE *sem = sems + sem_head++;
 	sem->available = cnt;
 	sem->wait_head = 0;
-	sem->wait_tail = 1;
+	sem->wait_tail = 0;
 	return sem;
 }

@@ -10,6 +10,8 @@ PUBLIC void out_byte(u16 port, u8 value);
 PUBLIC u8 in_byte(u16 port);
 PUBLIC void disp_str(char *info);
 PUBLIC void disp_color_str(char *info, int color);
+PUBLIC void enable_int();
+PUBLIC void disable_int();
 
 /* protect.c */
 PUBLIC void init_prot();
@@ -78,7 +80,7 @@ PUBLIC int get_ticks();
 PUBLIC void write(char *buf, int len);
 PUBLIC int dly(int k);
 PUBLIC int print_str(const char *str, int color);
-PUBLIC int printn(int n, int color);
+PUBLIC int printn(int n);
 PUBLIC int P(SEMAPHORE *t);
 PUBLIC int V(SEMAPHORE *t);
 

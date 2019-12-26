@@ -10,9 +10,9 @@
 #define MAX_RB 30
 #define MAX_PROC 30
 #define MAX_SEM 10
-#define READING 1
+#define READING 0
 #define WRITING 1
-#define PRIORITY 1
+#define PRIORITY 0
 
 typedef struct s_stackframe
 {					/* proc_ptr points here				↑ Low			*/
@@ -77,10 +77,10 @@ typedef struct semaphore
 #define NR_PROCS 6
 
 #define WAIT 1
-#define MRUN 2
+#define CRITICAL 2
 #define READNUM 3
 
-#define TIMESLICE 20000
+#define TIMESLICE 30000
 
 /* stacks of tasks */
 #define STACK_SIZE_TTY 0x8000
